@@ -1,0 +1,101 @@
+{% extends "header.html" %} 
+
+{% block title %}
+<title>repowatcher : search results</title>
+{% endblock %}
+
+{% block content %}
+<br></br>
+<div class="container">
+
+
+<div class ="row">
+
+{% if repositories_by_language %}
+
+<div id = "repositories_list" class="span9" style="margin-left:0px; width: 900px;">
+{% for category,repositories in repositories_by_language %}
+<div class="span3">
+				<table class="repositories table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
+					<thead>
+						<tr>
+							<th>{{ category }}</th>
+						</tr>
+					</thead>
+					<tbody >
+						{% for repository in repositories %}
+						{% if repository.host == 'github' %}
+						<tr>
+							<td><a title ="{{repository.owner}}/{{repository.name}}" href ="{% url repowatcher.main.views.github_repo repository.owner repository.name %}">{{repository.owner}}/{{repository.name}}</a></td>
+						</tr>
+						{% elif repository.host == 'bitbucket' %}
+						<tr">
+							<td><a title ="{{repository.owner}}/{{repository.name}}" href ="{% url repowatcher.main.views.bitbucket_repo repository.owner repository.name %}">{{repository.owner}}/{{repository.name}}</a></td>
+						</tr>
+						
+						{% endif %}
+
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% endfor %}
+</div>
+
+{% endif %}
+
+{% if users %}
+<div class="span3">
+
+				<table class="repositories table table-striped table-bordered">
+					<thead>
+						<tr>
+							<th style="color:green">users</th>
+						</tr>
+					</thead>
+					<tbody">
+						{% for user in users %}
+						<tr>
+							<td><a href ="{% url repowatcher.main.views.github_username user.login %}">{{user.login}}</a></td>
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			
+{% endif %}
+
+
+
+
+
+
+
+
+
+</div>
+</div>
+<!--  container -->
+{% endblock %}
+
+{% block script %}
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery.masonry.min.js"></script>
+	
+	
+	{% if repositories_by_language %}
+	<script type="text/javascript">
+	
+	  $(function(){
+	  $('#repositories_list').masonry({
+	    itemSelector : '.span3'
+	  });
+	});
+	  
+	  </script>
+	  
+	  {% endif %}
+	
+{% endblock %} 

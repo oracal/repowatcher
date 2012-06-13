@@ -1,0 +1,86 @@
+		
+		<tr><td>
+		
+		{% if event.type == "IssueCommentEvent"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> commented on <a href = "{{ event.payload.issue.html_url }}">issue {{ event.payload.issue.number }}</a> on <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{{event.payload.comment.body|truncatewords:35|urlize}}</div>
+
+		{% elif event.type == "WatchEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> started watching <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{{event.payload.comment.body|truncatewords:35|urlize}}</div>
+
+		{% elif event.type == "IssuesEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }} <a href = "{{ event.payload.issue.html_url }}">issue {{ event.payload.issue.number }}</a> on <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{{event.payload.issue.title|truncatewords:35|urlize}}</div>
+		
+		{% elif event.type == "PushEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> pushed to {{ event.payload.ref|cut:"refs/heads/" }} at <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{%for push_event in event.payload.commits%}{% if not forloop.first %}</br>{% endif %}<a href ="https://github.com/{{ event.repo.name }}/commit/{{push_event.sha}}">{{push_event.sha|slice:"10"}}</a> {{push_event.message|truncatewords:10|urlize}}{% endfor %}</div>
+		
+		{% elif event.type == "PullRequestEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }} <a href = "{{ event.payload.pull_request.html_url }}"> pull request {{ event.payload.pull_request.number }}</a> on <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{{event.payload.pull_request.title|truncatewords:35|urlize}}</br>{{event.payload.pull_request.commits}} commit{{event.payload.pull_request.commits|pluralize}} with {{event.payload.pull_request.additions}} addition{{event.payload.pull_request.additions|pluralize}} and {{event.payload.pull_request.deletions}} deletion{{event.payload.pull_request.deletions|pluralize}}</div>
+		
+		{% elif event.type == "ForkEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> forked <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div><a href ="{{ event.payload.forkee.html_url }}">View the fork →</a></div>
+		
+		{% elif event.type == "GollumEvent" %}		
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> edited the <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> wiki <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{% for wiki_page in event.payload.pages %}{% if not forloop.first %}</br>{% endif %}{{wiki_page.action|capfirst}} <a href = "{{wiki_page.html_url}}">{{wiki_page.page_name}}</a>. <a href="{{wiki_page.html_url}}/_compare/{{wiki_page.sha|slice:"7"}}%5E...{{wiki_page.sha|slice:"7"}}">View the diff →</a>{% endfor %}</div>
+		
+		{% elif event.type == "CommitCommentEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> commented on <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>Comment in <a href = "https://www.github.com/{{ event.repo.name }}/commit/{{event.payload.comment.commit_id}}">{{event.payload.comment.commit_id|slice:"10"}}</a>:</br>{{event.payload.comment.body|truncatewords:35|urlize}}</div>
+		
+		{% elif event.type == "CreateEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> created {{ event.payload.ref_type }} {% if event.payload.ref %} <a href ="https://www.github.com/{{ event.repo.name }}/tree/{{ event.payload.ref }}">{{ event.payload.ref }}</a> on {% endif %}<a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div></div>
+		
+		{% elif event.type == "PullRequestReviewCommentEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> commented on <a href = "{{ event.payload.issue.html_url }}">issue {{ event.payload.issue.number }}</a> on <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>Comment on {{event.payload.comment.path}}:</br>{{event.payload.comment.body|truncatewords:25|urlize}}</div>
+		
+		{% elif event.type == "DeleteEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> deleted {{ event.payload.ref_type }} {% if event.payload.ref %} {{ event.payload.ref }} on {% endif %}<a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>Deleted branch was at {% if event.payload.ref %} {{ event.payload.ref }}{% endif %}</div>
+		
+		{% elif event.type == "GistEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }}d <a href ="{{ event.payload.gist.html_url }}">gist: {{ event.payload.gist.id }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div></div>
+		
+		{% elif event.type == "FollowEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> started following <a href="{% url repowatcher.main.views.github_username event.payload.target.login %}">{{ event.payload.target.login }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>{{ event.payload.target.login }} has {{ event.payload.target.public_repos }} public repo{{event.payload.target.public_repos|pluralize}} and {{ event.payload.target.followers }} follower{{event.payload.target.followers|pluralize}}</div>
+		
+		{% elif event.type == "DownloadEvent" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> uploaded a file to <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div>"{{ event.payload.download.name }}" is at <a href ="{{ event.payload.download.html_url }}">{{ event.repo.name }}/downloads</a></div>
+				
+		{% elif event.type == "MemberEvent" %}
+		{# added #}
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }} <a href ="{% url repowatcher.main.views.github_username event.payload.member.login %}">{{ event.payload.member.login }}</a> to <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div></div>
+				
+		
+		{% else %}
+		
+		{{ event }}
+		
+		{% endif %}
+		
+		</td></tr>

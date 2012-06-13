@@ -1,0 +1,261 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : {% if user.is_authenticated and social_auth.github %}github - {{social_auth.github.extra_data.username}}{% endif %}{% if user.is_authenticated and social_auth.github and social_auth.bitbucket %} / {% endif %}{% if user.is_authenticated and social_auth.bitbucket %}bitbucket - {{social_auth.bitbucket.extra_data.username}}{% endif %}</title>
+{% endblock %}
+
+				{% block nav %}
+					<ul class="nav">
+						</li>
+						<li><a href="{% url repowatcher.main.views.watched_popular %}">Popular</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.about %}">About</a>
+						</li>
+						{% if user.is_authenticated %}
+						<li class="dropdown active">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+						<ul class="dropdown-menu">
+						<li><a href="{% url repowatcher.main.views.authed %}">Account</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.logout %}">Logout</a>
+						</li>
+						</ul>
+						</li>
+						{% else %}
+						<li class = "active"><a href="{% url repowatcher.main.views.index %}">Login</a>
+						</li>
+						{% endif %}
+					</ul>
+				{% endblock %}
+				
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if user.is_authenticated and social_auth.github %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username social_auth.github.extra_data.username %}">{{social_auth.github.extra_data.username|lower}}</a>{% endif %}{% if user.is_authenticated and social_auth.github and social_auth.bitbucket %} <span style = "color:white;">/</span> {% endif %}{% if user.is_authenticated and social_auth.bitbucket %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username social_auth.bitbucket.extra_data.username %}">{{social_auth.bitbucket.extra_data.username|lower}}</a>{% endif %}</div>
+{% endblock %}
+
+{% block content %}
+<style>
+        .gravatar {border: 1px solid #08C;}
+        .gravatar:hover {border: 1px solid #005580;}
+        </style>
+
+<div class = "container">
+<br></br>
+		
+<div id="user" class="row">
+<div class = "span4">
+
+{% if user.is_authenticated %}
+{% if social_auth.bitbucket or social_auth.github %}
+<div style="height: 175px;">
+<div class="well" style = "display: block;height:45px;text-align:center; float:left; margin-left: 0px; width:100%;padding-left:0px;padding-right:0px;">
+		<div style ="text-align:center; margin-left:19px;margin-right:19px">
+		<label style = "text-align:center;">Logged in account is currently associated with:</label>
+		<div class="providers" style="margin-top:10px;text-align:center; margin-left:19px;margin-right:19px">
+{% if user.is_authenticated and social_auth.github %}
+<div style="width:70px;margin-left:5px;margin-right:5px; display: inline-block;"><img width = "70px" src="/media/img/github.png"/><span style="display:block;"><a href={% url socialauth_disconnect_individual social_auth.github.provider social_auth.github.id %}>Github Disconnect</a></span></div>
+{% endif %}
+{% if user.is_authenticated and social_auth.bitbucket %}
+<div style="width:70px;margin-left:5px;margin-right:5px; display: inline-block;"><img width = "70px" src="/media/img/bitbucket.png"/><span style="display:block;"><a href={% url socialauth_disconnect_individual social_auth.bitbucket.provider social_auth.bitbucket.id %}>Bitbucket Disconnect</a></span></div>
+{% endif %}
+		</div>
+		</div>
+</div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if user.is_authenticated %}
+{% if not social_auth.bitbucket or not social_auth.github %}
+<div style="height: 175px;">
+<div class="well" style ="display: block; height:45px; text-align:center;float:left; margin-left: 0px; width:100%;;padding-right:0px;padding-left:0px">
+		<div style ="text-align:center;">
+		<label style = "text-align:center;">Associate your account with further code hosting sites:</label>
+		<div class="providers" style="margin-top:10px;text-align:center; margin-left:19px;margin-right:19px">
+		{% if user.is_authenticated and not social_auth.github %}
+		<div style="width:70px; display: inline-block;margin-left:5px;margin-right:5px;">
+		<a rel="nofollow" href="{% url socialauth_begin "github" %}"><img width = "70px" src="/media/img/github.png"/>
+		<span style="display:block;">Github</span></a>
+		</div>
+		{% endif %}
+		{% if user.is_authenticated and not social_auth.bitbucket %}
+		<div style="width:70px; display: inline-block;margin-left:5px;margin-right:5px;">
+		<a rel="nofollow" href="{% url socialauth_begin "bitbucket" %}"><img width = "70px" src="/media/img/bitbucket.png"/>
+		<span style="display:block;">Bitbucket</span></a>
+		</div>
+		{% endif %}
+		</div>
+		</div>
+</div>
+</div>
+{% endif %}
+{% endif %}
+		
+		<div id="user">
+<div>
+			<table id="user_description" class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th colspan="2">Authed User</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% if github_repository_user.login != None %}
+				<tr>
+				<td>Github Username</td><td><a href = "{% url repowatcher.main.views.github_username github_repository_user.login %}">{{github_repository_user.login}}</a></td>
+				</tr>
+				{% endif %}
+				{% if bitbucket_repository_user.login != None %}
+				<tr>
+				<td>Bitbucket Username</td><td><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_repository_user.login %}">{{bitbucket_repository_user.login}}</a></td>
+				</tr>
+				{% endif %}
+					{% if github_repository_user.name != None %}
+					<tr>
+						<td>Github Name</td><td>{{github_repository_user.name|title}}</td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.name != None %}
+					<tr>
+						<td>Bitbucket Name</td><td>{{bitbucket_repository_user.name|title}}</td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.email != None %}
+					<tr>
+						<td>Github Email</td><td>{{github_repository_user.email}}</td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.email != None %}
+					<tr>
+						<td>Bitbucket Email</td><td>{{bitbucket_repository_user.email}}</td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.blog != None %}
+					<tr>
+						<td>Github Blog</td><td><a href ="{{github_repository_user.blog}}">{{github_repository_user.blog}}</a></td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.blog != None %}
+					<tr>
+						<td>Bitbucket Blog</td><td><a href ="{{bitbucket_repository_user.blog}}">{{bitbucket_repository_user.blog}}</a></td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.followers != None %}
+					<tr>
+						<td>Number of Github Followers</td><td>{{github_repository_user.followers}}</td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.followers != None %}
+					<tr>
+						<td>Number of Bitbucket Followers</td><td>{{bitbucket_repository_user.followers}}</td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.following != None %}
+					<tr>
+						<td>Number Github Following</td><td>{{github_repository_user.following}}</td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.following != None %}
+					<tr>
+						<td>Number Bitbucket Following</td><td>{{bitbucket_repository_user.following}}</td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.created_at != None %}
+					<tr>
+						<td>Github Registered</td><td><span class="timeago" title="{{github_repository_user.created_at|date:'c'}}">{{github_repository_user.created_at|date:"r"}}</span></td>
+					</tr>
+					{% endif %}
+					{% if bitbucket_repository_user.created_at != None %}
+					<tr>
+						<td>Bitbucket Registered</td><td><span class="timeago" title="{{bitbucket_repository_user.created_at|date:'c'}}">{{bitbucket_repository_user.created_at|date:"r"}}</span></td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.public_repos != None and bitbucket_repository_user.public_repos != None %}
+					<tr>
+						<td>Github/Bitbucket Public Repositories</td><td><a href="{% url github_username_owned github_repository_user.login %}">{{github_repository_user.public_repos}}</a> / <a href="{% url bitbucket_username_owned bitbucket_repository_user.login %}">{{bitbucket_repository_user.public_repos}}</a> <a href="{% url owned %}">View →</a></td>
+					</tr>
+					{% elif github_repository_user.public_repos != None %}
+					<tr>
+						<td>Github Public Repositories</td><td>{{github_repository_user.public_repos}} <a href="{% url github_username_watched github_repository_user.login %}">View →</a></td>
+					</tr>
+					{% elif bitbucket_repository_user.public_repos != None %}
+					<tr>
+						<td>Bitbucket Public Repositories</td><td>{{bitbucket_repository_user.public_repos}} <a href="{% url bitbucket_username_owned bitbucket_repository_user.login %}">View →</a></td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.watched != None and bitbucket_repository_user.watched != None %}
+					<tr>
+						<td>Github/Bitbucket Watched Repositories</td><td><a href="{% url github_username_watched github_repository_user.login %}">{{github_repository_user.watched}}</a> / <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">{{bitbucket_repository_user.watched}}</a> <a href="{% url watched %}">View →</a></td>
+					</tr>
+					{% elif github_repository_user.watched != None %}
+					<tr>
+						<td>Github Watched Repositories</td><td>{{github_repository_user.watched}} <a href="{% url github_username_watched github_repository_user.login %}">View →</a></td>
+					</tr>
+					{% elif bitbucket_repository_user.watched != None %}
+					<tr>
+						<td>Bitbucket Watched Repositories</td><td>{{bitbucket_repository_user.watched}} <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">View →</a></td>
+					</tr>
+					{% endif %}
+					{% comment %}
+					{% for key,value in github_repository_user.extra_data.items %}
+					<tr>
+						<td>{{key|title}}</td><td>{{value}}</td>
+					</tr>
+					{% endfor %}
+					{% endcomment %}
+
+					{% comment %}
+					{% for key,value in bitbucket_repository_user.extra_data.items %}
+					<tr>
+						<td>{{key|title}}</td><td>{{value}}</td>
+					</tr>
+					{% endfor %}
+					{% endcomment %}
+
+				</tbody>
+			</table>
+		</div>
+		</div>
+		</div>
+		
+		<div class="span8">
+		
+		<table class="table table-condensed">
+		
+		<tbody>
+		
+		
+		{% for event in user_events %}
+		
+		{% if event.host == 'github' %}
+		
+		{% include "github_events.html" %}
+		
+		{% elif event.host == 'bitbucket' %}
+		
+		{% include "bitbucket_events.html" %}
+		
+		{% endif %}
+		
+		{% endfor %}
+		
+		</tbody>
+		
+		</table>
+		</div>
+
+
+</div>
+</div>
+{% endblock %}
+
+{% block script %}
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.timeago.js"></script>
+	<script type="text/javascript">
+	$(function(){
+	$("span.timeago").timeago();
+	});
+  </script>
+  {% endblock %}

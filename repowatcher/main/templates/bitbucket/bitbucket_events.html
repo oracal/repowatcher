@@ -1,0 +1,125 @@
+{% if event.user.username %}
+		<tr><td>
+		
+		{% if event.event == "start_follow_repo"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> started following <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "stop_follow_repo"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> stopped following <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "start_follow_user"  %}
+		<!--  
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> started following <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		-->
+		{% elif event.event == "stop_follow_user"  %}
+		<!--
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> stopped following <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		-->
+		{% elif event.event == "issue_update"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> updated issue on <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "commit"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> committed to <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div><a href="https://bitbucket.org/{{event.repository.owner}}/{{event.repository.name }}/changeset/{{event.node}}">{{event.node}}</a> {{event.description}}</div>
+		
+		{% elif event.event == "pullrequest_created"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> created pull request at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "pullrequest_fulfilled"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> fulfilled pull request at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "pullrequest_updated"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> updated pull request at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "fork"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> created a fork <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "delete"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> deleted a repository <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "create"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> created <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "pullrequest_comment_created"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> commented on a pull request at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "report_issue"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> reported issue on <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "issue_comment"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> commented on issue at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "pullrequest_rejected" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> rejected pull request on <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "file_uploaded" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> uploaded file to <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "wiki_updated" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> updated the <a href="https://bitbucket.org/{{ event.repository.owner }}/{{ event.repository.name }}/wiki/{{event.description}}">{{event.description}}</a> wiki on <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "start_follow_issue" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> started following an issue at <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32"}}" width="42"></a></div></div>
+		
+		{% elif event.event == "event" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> stripped <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32"}}" width="42"></a></div></div>
+		
+		{% elif event.event == "wiki_created" %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> created the <a href="https://bitbucket.org/{{ event.repository.owner }}/{{ event.repository.name }}/wiki/{{event.description}}">{{event.description}}</a> wiki on <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "cset_comment_created"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> commented on changeset <a href="https://bitbucket.org/{{event.repository.owner}}/{{event.repository.name }}/changeset/{{event.node}}">{{event.node}}</a> of <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% elif event.event == "cset_comment_updated"  %}
+		
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}">{{ event.user.username }}</a> updated comment on changeset <a href="https://bitbucket.org/{{event.repository.owner}}/{{event.repository.name }}/changeset/{{event.node}}">{{event.node}}</a> of <a href = "{% url repowatcher.main.views.bitbucket_repo event.repository.owner event.repository.name %}">{{ event.repository.owner }}/{{ event.repository.name }}</a> <strong><span class="timeago" title="{{event.utc_created_on}}">{{event.utc_created_on|date:"r"}}</span></strong></div>
+		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.bitbucket_username event.user.username %}"><img style = "float:left;" height="42" src="{{ event.user.avatar|cut:"&s=32" }}" width="42"></a></div></div>
+		
+		{% else %}
+		
+		{{ event }}
+		
+		{% endif %}
+		</td></tr>
+		{% endif %}

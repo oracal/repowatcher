@@ -1,0 +1,94 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : github - popular</title>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → popular</span></div>
+{% endblock %}
+
+{% block nav %}
+					<ul class="nav">
+						<li class = "active"><a href="{% url repowatcher.main.views.watched_popular %}">Popular</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.about %}">About</a>
+						</li>
+						{% if user.is_authenticated %}
+						<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+						<ul class="dropdown-menu">
+						<li><a href="{% url repowatcher.main.views.authed %}">Account</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.logout %}">Logout</a>
+						</li>
+						</ul>
+						</li>
+						{% else %}
+						<li><a href="{% url repowatcher.main.views.index %}">Login</a>
+						</li>
+						{% endif %}
+					</ul>
+				{% endblock %}
+
+{% block content %}
+
+<style>
+
+.placeholder{
+height:35px;
+}
+
+</style>
+
+	<div class="container">
+		<br></br>
+		
+		<div id="repositories_list" class="row">
+
+			{% for category,value in repositories_by_language %}
+			<div class="span3">
+				<table class="repositories table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
+					<thead>
+						<tr>
+							<th style="overflow:hidden;"><a href="{% url repowatcher.main.views.github_watched_language_popular category %}">{{category}}</a></th>
+						</tr>
+					</thead>
+					<tbody class="connectedSortable">
+						{% for repo in value %}
+						<tr>
+							<td style = "overflow:hidden;"><a href="{% url repowatcher.main.views.github_repo repo.owner repo.name %}">{{ repo.owner }}/{{ repo.name }}</a>
+							</td>
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% endfor %}
+		</div>
+
+
+	</div>
+	<!-- /container -->
+	
+	{% endblock %}
+
+
+{% block script %}
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.masonry.min.js"></script>
+	<script type="text/javascript">
+	
+$(function(){
+	
+ 
+	  $('#repositories_list').masonry({
+	    itemSelector : '.span3'
+	  });
+});  
+  </script>
+  
+  {% endblock %}

@@ -1,0 +1,215 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : github - {{username|lower}} - {% if owned %}owned{% else %}watched{% endif %} - {{category|lower}}</title>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{% url github_username_owned username %}">owned</a>{% else %}<a href = "{% url github_username_watched username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span></div>
+{% endblock %}
+
+{% block content %}
+<style>
+        .gravatar {border: 1px solid #08C;}
+        .gravatar:hover {border: 1px solid #005580;}
+        </style>
+
+	<div class="container">
+	{% if user.is_authenticated %}
+	{% if social_auth.github.extra_data.username == username %}
+			<div class="row">
+			<div class="btn-group pull-right">
+				<a class="btn" data-toggle="modal" href="#saveChangesModal"><i class="icon-ok"></i> Save</a> <a class="btn dropdown-toggle"	data-toggle="dropdown" href="#"> <strong><span class="caret"></span></strong> </a>
+				<ul class="dropdown-menu">
+				<li><a data-toggle="modal" href="#saveChangesModal"><i class="icon-ok"></i> Save</a></li>
+					<li><a data-toggle="modal" href="#updateModal"><i
+							class="icon-refresh"></i> Update</a>
+					<li><a data-toggle="modal" href="#refreshModal"><i
+							class="icon-trash"></i> Refresh</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+	{% endif %}
+		{% endif %}
+	
+		<br></br>
+		
+		<div id="repositories_list" class="row">
+		
+		
+		<div class="span3">
+			<table id="repositories" class="table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
+				<thead>
+					<tr>
+						<th style="overflow:hidden;">{{category}}</th>
+					</tr>
+				</thead>
+				<tbody class="connectedSortable">
+					{% for repo in watched %}
+					<tr>
+						<td style = "cursor:move;"><a title ="{{repo.owner}}/{{repo.name}}" href="{% url repowatcher.main.views.github_repo repo.owner repo.name %}">{{ repo.owner }}/{{ repo.name }}</a></td>
+					</tr>
+
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		
+		<div class="span8">
+		
+		<table class="table table-condensed">
+		
+		<tbody>
+		
+		
+		{% for event in repo_events %}
+		
+		{% include "github_events.html" %}
+		
+		{% endfor %}
+		
+		</tbody>
+		
+		</table>
+		</div>
+		</div>
+		
+	{% if user.is_authenticated %}
+	{% if social_auth.github.extra_data.username == username %}
+			<!-- Modals -->
+
+		<div class="modal hide fade" id="saveChangesModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Save Changes</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to save changes?</p>
+			</div>
+			<div class="modal-footer">
+				<a id="save" href="#" class="btn btn-primary" data-dismiss="modal"><i class="icon-ok"></i> Save changes</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="updateModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Update</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to update your repositories? Your
+					bookmarked repos will remain unchanged.</p>
+			</div>
+			<div class="modal-footer">
+				{% if owned %}
+				<a id ="update" href="{% url github_username_category_owned_update username category %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% else %}
+				<a id ="update" href="{% url github_username_category_watched_update username category %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% endif %}
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="refreshModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Refresh</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to refresh your repos? You will lose all your changes.</p>
+			</div>
+			<div class="modal-footer">
+				{% if owned %}
+				<a id ="refresh" href="{% url github_username_category_owned_refresh username category %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% else %}
+				<a id ="refresh" href="{% url github_username_category_watched_refresh username category %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% endif %}
+				
+			</div>
+		</div>
+		
+		{% endif %}
+		{% endif %}
+
+
+	</div>
+	<!-- /container -->
+	
+	
+	
+	
+		{% endblock %}
+
+
+{% block script %}
+
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.timeago.js"></script>
+	<script type="text/javascript">
+	$(function(){
+	$("span.timeago").timeago();
+	
+	  $(".connectedSortable").sortable({
+      helper: function(e, tr)
+      {
+    	    var $originals = tr.children();
+    	    var $helper = tr.clone();
+    	    $helper.children().each(function(index)
+    	    {
+    	      // Set helper cell sizes to match the original sizes
+    	      $(this).width($originals.eq(index).width())
+    	    });
+    	    return $helper;
+    	  },
+   connectWith: ".connectedSortable"
+  }).disableSelection();
+
+		{% if user.is_authenticated %}
+		{% if social_auth.github.extra_data.username == username %}
+		function serialize(){
+		  var list;
+		  $('#repositories').each(function() {
+			  var category = $("th:first",$(this)).text()
+		          var rows = this.rows;
+			  	  list = [];
+		          for (var i=1; i<rows.length; i++) {
+
+		               list.push($.trim($("td:first", rows[i]).text()));
+		          }
+		  });
+		  return list;
+		  };
+	  
+	  $('#save').click(function(){
+		  $.ajax({
+	  type: 'POST',
+	  {% if owned %}
+	  url: '{% url github_username_category_owned_save username category %}',
+	  {% else %}
+	  url: '{% url github_username_category_watched_save username category %}',
+	  {% endif %}
+	  data: {
+	    order: JSON.stringify(serialize()),
+	    csrfmiddlewaretoken: '{{ csrf_token }}'
+	},
+	  dataType: 'json'
+	});
+	  });
+	  
+	  
+	  $('#refresh').click(function(){
+		  $('#refreshModal').modal('hide');
+		  });
+		  
+		  $('#update').click(function(){
+			  $('#updateModal').modal('hide');
+			  });
+
+	  {% endif %}
+	  {% endif %}
+	});
+  </script>
+{% endblock %}

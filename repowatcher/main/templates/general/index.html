@@ -1,0 +1,67 @@
+{% extends "header.html" %} 
+
+{% block title %}
+<title>repowatcher : home</title>
+{% endblock %}
+
+				{% block nav %}
+					<ul class="nav">
+						
+						<li><a href="{% url repowatcher.main.views.watched_popular %}">Popular</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.about %}">About</a>
+						</li>
+						{% if user.is_authenticated %}
+						<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Account<b class="caret"></b></a>
+						<ul class="dropdown-menu">
+						<li><a href="{% url repowatcher.main.views.authed %}">Account</a>
+						</li>
+						<li><a href="{% url repowatcher.main.views.logout %}">Logout</a>
+						</li>
+						</ul>
+						</li>
+						{% else %}
+						<li class = "active"><a href="{% url repowatcher.main.views.index %}">Login</a>
+						</li>
+						{% endif %}
+					</ul>
+				{% endblock %}
+
+{% block content %}
+<br></br>
+<br></br>
+  
+<div class="well" style ="margin-left: auto; margin-right: auto; display: block; width: 400px;">
+
+<form action = "/anonymous/" method = "get" id="login">
+  <label style = "text-align:center;">Enter your Github user name to search your public information</label>
+  
+  </br>
+  <input autocomplete="off" type="text" name="username" class="span3" style ="text-align:center;float:none;margin-left: auto; margin-right: auto; display: block;" placeholder="Github Username">
+  <button type="submit" class="btn" style ="width: 60px;float:none;margin-left: auto; margin-right: auto; display: block;">Submit</button>
+</form>
+</div>
+<div class="well" style ="margin-left: auto; margin-right: auto; display: block; width: 400px;height:65px">
+		<div style ="text-align:center;">
+		<label style = "text-align:center;">To gain more features please log in using the provider's own authentication by clicking on their respective icons</label>
+		<div class="providers" style="width:150px;margin-left: auto; margin-right: auto; margin-top:10px">
+		<div style="width:70px;float:left">
+		<a rel="nofollow" href="{% url socialauth_begin "github" %}"><img width = "70px" src="/media/img/github.png"/>
+		<span style="display:block;">Github</span></a>
+		</div>
+		<div style="width:70px;float:left; margin-left:10px">
+		<a rel="nofollow" href="{% url socialauth_begin "bitbucket" %}"><img width = "70px" src="/media/img/bitbucket.png"/>
+		<span style="display:block;">Bitbucket</span></a>
+		</div>
+		</div>
+		</div>
+</div>
+
+
+{% endblock %}
+
+{% block script %}
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+{% endblock %} 

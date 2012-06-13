@@ -1,0 +1,119 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : bitbucket - {{repository.owner|lower}} - {{repository.name|lower}}</title>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username repository.owner %}">{{repository.owner|lower}}</a><span style = "color:white;"> → {{repository.name|lower}}</span></div>
+{% endblock %}
+
+{% block content %}
+<style>
+        .gravatar {border: 1px solid #08C;}
+        .gravatar:hover {border: 1px solid #005580;}
+        </style>
+
+	<div class="container">
+	
+		<br></br>
+		
+		<div id="repository" class="row">
+		
+		
+		<div class="span4">
+			<table id="repository_description" class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th colspan="2"><a href = "{{repository.html_url}}">{{repository.owner}}/{{repository.name}}</a></th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr>
+						<td>Owner</td><td><a href="{% url repowatcher.main.views.bitbucket_username repository.owner %}">{{repository.owner}}</a></td>
+					</tr>
+					<tr>
+						<td>Name</td><td>{{repository.name}}</td>
+					</tr>
+					{% if repository.description %}
+					<tr>
+						<td>Description</td><td>{{repository.description}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.language %}
+					<tr>
+						<td>Language</td><td>{{repository.language}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.created_at %}
+					<tr>
+						<td>Creation Date</td><td><span class="timeago" title="{{repository.created_at|date:'c'}}">{{repository.created_at|date:"r"}}</span></td>
+					</tr>
+					{% endif %}
+					{% if repository.pushed_at %}
+					<tr>
+						<td>Last Updated</td><td><span class="timeago" title="{{repository.pushed_at|date:'c'}}">{{repository.pushed_at|date:"r"}}</span></td>
+					</tr>
+					{% endif %}
+					{% if repository.watchers %}
+					<tr>
+						<td>Number of Watchers</td><td>{{repository.watchers}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.private != None %}
+					<tr>
+						<td>Private</td><td>{{repository.private}}</td>
+					</tr>
+					{% endif %}
+					{% comment %}
+					{% for key,value in repository.extra_data.items %}
+					{% if value != None %}
+					<tr>
+						<td>{{key|title}}</td><td>{{value}}</td>
+					</tr>
+					{% endif %}
+					{% endfor %}
+					{% endcomment %}
+
+				</tbody>
+			</table>
+		</div>
+		
+		<div class="span8">
+		
+		<table class="table table-condensed">
+		
+		<tbody>
+		
+		
+		{% for event in repo_events %}
+		
+		{% include "bitbucket_events.html" %}
+		{% endfor %}
+		
+		</tbody>
+		
+		</table>
+		</div>
+		</div>
+		
+	</div>
+	<!-- /container -->
+	
+	
+		{% endblock %}
+
+
+{% block script %}
+
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.timeago.js"></script>
+	<script type="text/javascript">
+	$(function(){
+	$("span.timeago").timeago();
+	});
+  </script>
+{% endblock %}

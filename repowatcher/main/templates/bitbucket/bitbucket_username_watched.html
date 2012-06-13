@@ -1,0 +1,436 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : bitbucket - {{username|lower}} - {% if owned %}owned{% else %}watched{% endif %}</title>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<span style = "color:white;">owned</span>{% else %}<span style = "color:white;">watched</span>{% endif %}</div>
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+.placeholder{
+height:35px;
+}
+
+</style>
+
+	<div class="container">
+	{% if user.is_authenticated and social_auth.bitbucket %}
+		{% if social_auth.bitbucket.extra_data.username == username %}
+		<div class="row">
+			<div class="btn-group pull-right">
+				<a class="btn" data-toggle="modal" href="#saveChangesModal"><i class="icon-ok"></i> Save</a> <a class="btn dropdown-toggle"	data-toggle="dropdown" href="#"> <span class="caret"></span> </a>
+				<ul class="dropdown-menu">
+				<li><a data-toggle="modal" href="#saveChangesModal"><i class="icon-ok"></i> Save</a></li>
+					<li><a data-toggle="modal" href="#updateModal"><i
+							class="icon-refresh"></i> Update</a>
+					</li>
+					<li><a data-toggle="modal" href="#refreshModal"><i
+							class="icon-trash"></i> Refresh</a>
+					</li>
+						<li><a id = "addCategoryButton" data-toggle="modal" href="#addCategoryModal"><i
+							class="icon-plus"></i> Add Category</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		{% endif %}
+
+	{% endif %}
+	
+		<br></br>
+		
+		<div id="repositories_list" class="row">
+
+			{% for category,value in repositories_by_language %}
+			<div class="span3">
+				<table class="repositories table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
+					<thead>
+						<tr>
+							{% if owned %}
+							<th><a href ="{% url bitbucket_username_category_owned username category %}">{{category}}</a></th>
+							{% else %}
+							<th><a href ="{% url bitbucket_username_category_watched username category %}">{{category}}</a></th>
+							{% endif %}
+						</tr>
+					</thead>
+					<tbody class="connectedSortable">
+						{% for repo in value %}
+						<tr>
+							<td style = "cursor:move;"><a title ="{{repo.owner}}/{{repo.name}}" href="{% url repowatcher.main.views.bitbucket_repo repo.owner repo.name %}">{{ repo.owner }}/{{ repo.name }}</a>
+							</td>
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% endfor %}
+		</div>
+
+{% if user.is_authenticated  and social_auth.bitbucket  %}
+{% if social_auth.bitbucket.extra_data.username == username %}
+
+		<!-- Modals -->
+
+		<div class="modal hide fade" id="saveChangesModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Save Changes</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to save changes?</p>
+			</div>
+			<div class="modal-footer">
+				<a id="save" href="#" class="btn btn-primary" data-dismiss="modal"><i class="icon-ok"></i> Save changes</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="updateModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Update</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to update your repositories? Your
+					bookmarked repos will remain unchanged.</p>
+			</div>
+			<div class="modal-footer">
+				{% if owned %}
+				<a id = "update" href="{% url bitbucket_username_owned_update username %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% else %}
+				<a id = "update" href="{% url bitbucket_username_watched_update username %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% endif %}
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="refreshModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Refresh</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to refresh your repos? You will lose all your changes.</p>
+			</div>
+			<div class="modal-footer">
+				{% if owned %}
+				<a id = "refresh" href="{% url bitbucket_username_owned_refresh username %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% else %}
+				<a id = "refresh" href="{% url bitbucket_username_watched_refresh username %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				{% endif %}
+			</div>
+		</div>
+		
+				<div class="modal hide fade" id="addCategoryModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Add Category</h3>
+			</div>
+			<div class="modal-body">
+				<p style = "margin-left: auto; margin-right: auto;">Input the name of your desired category and it will be added to the page.</p>
+				<br/>
+				<form>
+  <input id = "addCategoryName" type="text" class="span3" placeholder="Category">
+</form>
+			</div>
+			<div class="modal-footer">
+				<a id = "addCategory" href="#" class="btn btn-primary" data-dismiss="modal"><i class="icon-plus"></i>Add Category</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+			</div>
+		</div>
+{% endif %}
+
+{% endif %}
+
+	</div>
+	<!-- /container -->
+	
+	{% endblock %}
+
+
+{% block script %}
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.masonry.min.js"></script>
+	<script type="text/javascript">
+	
+$(function(){
+	
+	{% if user.is_authenticated and social_auth.bitbucket %}
+	{% if social_auth.bitbucket.extra_data.username == username %}
+	
+	var bookmarkedExists = false;
+	 $('table').each(function() {
+		 var th = $("th:first",$(this));
+		  var category = th.text();
+		  if (category =="bookmarked")
+			  {
+			  $("a",th).css('color','green');
+			  bookmarkedExists=true;
+			  }
+	 });
+  if(!bookmarkedExists){
+	$("#repositories_list").append(
+			$('<div>').attr('class','span3').append(
+					$('<table>').attr('class',"repositories table table-striped table-bordered").append(
+							$('<thead>').append(
+							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url bitbucket_username_category_owned username "bookmarked" %}{% else %}{% url bitbucket_username_category_watched username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
+									$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>"))))));
+  }
+  
+  {% endif %}
+  {% endif %}
+  
+  var draggedFrom2;
+  $(".connectedSortable")
+  function sortRepo(selector){
+	  selector.sortable({
+      helper: function(e, tr)
+      {
+    	    var $originals = tr.children();
+    	    var $helper = tr.clone();
+    	    $helper.children().each(function(index)
+    	    {
+    	      // Set helper cell sizes to match the original sizes
+    	      $(this).width($originals.eq(index).width())
+    	    });
+    	    return $helper;
+    	  },
+    	  placeholder: "placeholder",
+    	  cursor: 'move',
+    	  //opacity: 0.6,
+
+    	  over:function(event,ui)
+    		  {
+    			  
+    		  
+    		  /*$('.posChanged').each(function(){
+    			  var offset = $(this).offset();
+				  offset.top = offset.top - ui.item.height();
+				  $(this).offset(offset);
+				  $(this).removeClass('posChanged');[\w+-]
+    		  });
+    		  
+    		  $('.negChanged').each(function(){
+    			  var offset = $(this).offset();
+				  offset.top = offset.top + ui.item.height();
+				  $(this).offset(offset);
+				  $(this).removeClass('negChanged');
+    		  });*/
+    		  
+    		  
+    		  
+    		  /*$('.smallPosChanged').each(function(){
+    			  var offset = $(this).offset();
+				  offset.top = offset.top - 17;
+				  $(this).offset(offset);
+				  $(this).removeClass('smallPosChanged');
+    		  });
+    		  
+    		  $('.smallNegChanged').each(function(){
+    			  var offset = $(this).offset();
+				  offset.top = offset.top + 17;
+				  $(this).offset(offset);
+				  $(this).removeClass('smallNegChanged');
+    		  });*/
+    		  
+    		  if (draggedFrom2 == null){draggedFrom2=ui.sender.closest('div')}
+    		  var draggedFrom = ui.sender.closest('div');
+    		  
+    		  var smallPosChanged = false;
+    		  var smallNegChanged = false;
+    		  
+    		  if (draggedFrom2.find("tr").length == 1){
+    			  smallPosChanged = true;
+    			  draggedFrom2.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
+  			  }
+    		  if (draggedFrom.find("tr").length == 3){
+    			  smallPosChanged = true;
+    			  draggedFrom.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
+  			  }
+    		  
+    		  
+    		  var draggedOn = ui.placeholder.closest('div');
+    		  draggedOn.find('td').each(function(){
+    			  
+ 					if ($(this).text() =="")
+						{
+						$(this).parent('tr').remove();
+						smallNegChanged = true;
+						}
+    			  
+    		  });
+    		  
+    		  var left = draggedOn.offset().left;
+    		  draggedOn.nextAll('div').each(function(){
+    			
+    			  if ($(this).offset().left == left){
+    				  var offset = $(this).offset();
+    				  offset.top = offset.top + ui.helper.height();
+    				  //$(this).addClass('posChanged')
+    				  if (smallNegChanged){
+    					  offset.top = offset.top - 17;
+    					  //$(this).addClass('smallNegChanged')
+    				  }
+    				  $(this).offset(offset);
+    				  
+    			  }
+    			  
+    		  });
+    		  
+    		  var left = draggedFrom2.offset().left;
+    		  draggedFrom2.nextAll('div').each(function(){
+    			
+    			  if ($(this).offset().left == left){
+    				  var offset = $(this).offset();
+    				  offset.top = offset.top - ui.helper.height();
+    				  //$(this).addClass('negChanged')
+    				  if (smallPosChanged){
+    					  offset.top = offset.top + 17;
+    					  //$(this).addClass('smallPosChanged')
+    				  }
+    				  $(this).offset(offset);
+    				  
+    			  }})
+    			  draggedFrom2=draggedOn;
+
+    		  },
+    		  
+    		  
+        	  receive:function(event,ui)
+    		  {
+    		  if(ui.sender){
+    			  
+    			  if (ui.sender.children("tr").length == 0){
+      				  ui.sender.append($("<tr>").addClass('dragDisabled').append($("<td>")));
+      			  }
+    				
+    		  }
+
+    		  },
+    		  stop:function(event,ui){
+    			  
+   			  ui.item.parent('tbody').find('td').each(function(){
+   					if ($(this).text() =="")
+   						{
+   						$(this).parent('tr').remove();
+   						}
+   				});
+  			if(ui.item.parent('tbody').children("tr").length == 0){
+  				ui.item.parent('tbody').append($("<tr>").attr('style',"cursor:move;").append($("<td>")));
+  			}
+  			
+    			  /*$('.negChanged').each(function(){
+    				  $(this).removeClass('negChanged')
+    			  });
+    			  $('.posChanged').each(function(){
+    				  $(this).removeClass('posChanged')
+    			  });
+    				  
+    			  $('.smallNegChanged').each(function(){
+    				  $(this).removeClass('smallNegChanged')
+    			  });
+    			  $('.smallPosChanged').each(function(){
+    				  $(this).removeClass('smallPosChanged')
+    			  });*/
+    			  draggedFrom2 = null;
+      			  $('#repositories_list').masonry({ itemSelector : '.span3'});
+      			  
+    		  },
+    		  
+ 
+   connectWith: ".connectedSortable",
+   cancel: ".dragDisabled"
+  }).disableSelection();
+  }
+  
+  
+ sortRepo($(".connectedSortable"));
+ 
+	  $('#repositories_list').masonry({
+	    itemSelector : '.span3'
+	  });
+	  
+		{% if user.is_authenticated and social_auth.bitbucket %}
+		{% if social_auth.bitbucket.extra_data.username == username %}
+  function serialize(){
+  var result = {};
+  var list;
+  $('table').each(function() {
+	  var category = $("th:first",$(this)).text()
+          var rows = this.rows;
+	  	  list = [];
+          for (var i=1; i<rows.length; i++) {
+
+               list.push($.trim($("td:first", rows[i]).text()));
+          }
+          if(result[category]){
+        	  result[category] = result[category].concat(list)
+        	  
+          }
+          else{
+      result[category] = list;
+          }
+  });
+  return result
+  };
+  
+  $('#save').click(function(){
+	  $.ajax({
+  type: 'POST',
+  {% if owned %}
+  url: '{% url bitbucket_username_owned_save username %}',
+  {% else %}
+  url: '{% url bitbucket_username_watched_save username %}',
+  {% endif %}
+  data: {
+    order: JSON.stringify(serialize()),
+    csrfmiddlewaretoken: '{{ csrf_token }}'
+},
+  dataType: 'json'
+});
+  });
+  $('#refresh').click(function(){
+  $('#refreshModal').modal('hide');
+  });
+  
+  $('#update').click(function(){
+	  $('#updateModal').modal('hide');
+	  });
+  $('#addCategory').click(function(){
+	  var category = $('#addCategoryName').val();
+	  if(category ==''){category = 'other';}
+	  $('#addCategoryName').val('');
+
+	  var categoryDiv = $('<div>').attr('class','span3').append(
+				$('<table>').attr('class',"repositories table table-striped table-bordered").append(
+						$('<thead>').append(
+						$('<tr>').append($('<th>').append($('<a>').attr('href','bitbucket/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/watched'{% endif %}).css('color','purple').text(category))))).append(
+								$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>")))));
+	  
+	  $("#repositories_list").append(categoryDiv).masonry( 'appended', categoryDiv );
+	  sortRepo($(categoryDiv).find('tbody'));
+	  });
+  
+  
+  $('#addCategoryModal').on('shown', function () {
+	  
+	  $("#addCategoryName").focus();
+	  $("#addCategoryName").keyup(function(event){
+		    if(event.keyCode == 13){
+		        $("#addCategory").click();
+		    }
+		});
+})
+  {% endif %}
+  
+  {% endif %}
+});  
+  </script>
+  
+  {% endblock %}

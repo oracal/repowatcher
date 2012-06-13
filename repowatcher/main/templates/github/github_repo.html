@@ -1,0 +1,203 @@
+{% extends "header.html" %}
+
+{% block title %}
+<title>repowatcher : github - {{repository.owner|lower}} - {{repository.name|lower}}</title>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username repository.owner %}">{{repository.owner|lower}}</a><span style = "color:white;"> → {{repository.name|lower}}</span></div>
+{% endblock %}
+
+{% block content %}
+<style>
+        .gravatar {border: 1px solid #08C;}
+        .gravatar:hover {border: 1px solid #005580;}
+        </style>
+
+	<div class="container">
+	{% if user.is_authenticated and social_auth.github %}
+			<div class="row">
+			<div class="btn-group pull-right">
+			{% if watched %}
+				<a id = "unwatchButton" class="btn" data-toggle="modal" href="#unwatchModal"><i class="icon-star-empty"></i> Unwatch</a>
+			{% else %}
+				<a id = "watchButton" class="btn" data-toggle="modal" href="#watchModal"><i class="icon-star"></i> Watch</a>
+				
+			{% endif %}
+			</div>
+		</div>
+
+	{% endif %}
+	
+		<br></br>
+		
+		<div id="repository" class="row">
+		
+		
+		<div class="span4">
+			<table id="repository_description" class="table table-striped table-bordered">
+				<thead>
+					<tr>
+						<th colspan="2"><a href = "{{repository.html_url}}">{{repository.owner}}/{{repository.name}}</a></th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr>
+						<td>Owner</td><td><a href="{% url repowatcher.main.views.github_username repository.owner %}">{{repository.owner}}</a></td>
+					</tr>
+					<tr>
+						<td>Name</td><td>{{repository.name}}</td>
+					</tr>
+					{% if repository.description %}
+					<tr>
+						<td>Description</td><td>{{repository.description}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.language %}
+					<tr>
+						<td>Language</td><td>{{repository.language}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.created_at %}
+					<tr>
+						<td>Creation Date</td><td><span class="timeago" title="{{repository.created_at|date:'c'}}">{{repository.created_at|date:"r"}}}</span></td>
+					</tr>
+					{% endif %}
+					{% if repository.pushed_at %}
+					<tr>
+						<td>Last Updated</td><td><span class="timeago" title="{{repository.pushed_at|date:'c'}}">{{repository.pushed_at|date:"r"}}</span></td>
+					</tr>
+					{% endif %}
+					{% if repository.watchers %}
+					<tr>
+						<td>Number of Watchers</td><td>{{repository.watchers}}</td>
+					</tr>
+					{% endif %}
+					{% if repository.private != None %}
+					<tr>
+						<td>Private</td><td>{{repository.private}}</td>
+					</tr>
+					{% endif %}
+					{% comment %}
+					{% for key,value in repository.extra_data.items %}
+					{% if value != None %}
+					<tr>
+						<td>{{key|title}}</td><td>{{value}}</td>
+					</tr>
+					{% endif %}
+					{% endfor %}
+					{% endcomment %}
+
+				</tbody>
+			</table>
+		</div>
+		
+		<div class="span8">
+		
+		<table class="table table-condensed">
+		
+		<tbody>
+		
+		
+		{% for event in repo_events %}
+
+		{% include "github_events.html" %}
+		
+		{% endfor %}
+		
+		</tbody>
+		
+		</table>
+		</div>
+		</div>
+		
+		
+		{% if user.is_authenticated and social_auth.github %}
+			<!-- Modals -->
+
+		<div class="modal hide fade" id="watchModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Watch</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to watch this repository?</p>
+			</div>
+			<div class="modal-footer">
+				<a id="watch" href="#" class="btn btn-primary" data-dismiss="modal"><i class="icon-star"></i> Watch</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+			</div>
+		</div>
+
+		<div class="modal hide fade" id="unwatchModal">
+			<div class="modal-header">
+				<a class="close" data-dismiss="modal">×</a>
+				<h3>Unwatch</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to unwatch this repository?</p>
+			</div>
+			<div class="modal-footer">
+				<a id="unwatch" href="#" class="btn btn-danger" data-dismiss="modal"><i class="icon-star-empty"></i> Unwatch</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+			</div>
+		</div>
+
+		{% endif %}
+		
+	</div>
+	<!-- /container -->
+	
+	
+	
+	
+		{% endblock %}
+
+
+{% block script %}
+
+	<script src="/media/js/jquery.min.js"></script>
+	<script src="/media/js/bootstrap.min.js"></script>
+	<script src="/media/js/jquery-ui.min.js"></script>
+	<script src="/media/js/jquery.timeago.js"></script>
+	<script type="text/javascript">
+	$(function(){
+	$("span.timeago").timeago();
+	
+	
+	{% if user.is_authenticated and social_auth.github %}
+	
+	$('#watch').click(function(){
+		  $.ajax({
+	  type: 'GET',
+	  url: '{% url repowatcher.main.views.github_repo_watch repository.owner repository.name %}',
+	  data: {
+	    csrfmiddlewaretoken: '{{ csrf_token }}'
+	},
+	  dataType: 'json',
+	  success: function(){
+		$('#watchButton').html('<i class="icon-star-empty"></i> Unwatch').attr('href','#unwatchModal').attr('id','unwatchButton');  
+	  }
+	  });
+	});
+	
+		  
+		$('#unwatch').click(function(){
+			  $.ajax({
+		  type: 'GET',
+		  url: '{% url repowatcher.main.views.github_repo_unwatch repository.owner repository.name %}',
+		  data: {
+		    csrfmiddlewaretoken: '{{ csrf_token }}'
+		},
+		  dataType: 'json',
+		  success: function(){
+			$('#unwatchButton').html('<i class="icon-star"></i> Watch').attr('href','#watchModal').attr('id','watchButton')  
+		  }
+		  });
+		});
+	
+	{% endif %}
+	
+	
+	});
+  </script>
+{% endblock %}
