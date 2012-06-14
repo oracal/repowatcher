@@ -170,7 +170,7 @@ def watched(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        github_repository_user.save()
+        #github_repository_user.save()
         if len(github_repositories_by_language) == 0:
             watched = github_provider.get_repositories(github_username, owned)
             count = 0
@@ -197,6 +197,9 @@ def watched(request):
                 repositories_by_language[category].sort(key=lambda x: x.watchers, reverse = True)
             github_repository_user.watched = count
             github_repository_user.save()
+        else:
+            for category in github_repositories_by_language.keys():
+                repositories_by_language[category].extend(github_repositories_by_language[category])
     except ObjectDoesNotExist:
         github_authed = False
     try:
@@ -226,6 +229,9 @@ def watched(request):
             for category in repositories_by_language.keys():
                 repositories_by_language[category].sort(key=lambda x: x.watchers, reverse = True)
             bitbucket_repository_user.watched = count
+        else:
+            for category in bitbucket_repositories_by_language.keys():
+                repositories_by_language[category].extend(bitbucket_repositories_by_language[category])
     except ObjectDoesNotExist:
         bitbucket_authed = False
     if bitbucket_authed or github_authed:
@@ -249,7 +255,8 @@ def owned(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        github_repository_user.save()
+        #github_repository_user.save()
+        logger.error(github_repositories_by_language)
         if len(github_repositories_by_language) == 0:
             owned = github_provider.get_repositories(github_username, owned)
             
@@ -275,6 +282,9 @@ def owned(request):
                 repositories_by_language[category].extend(github_repositories_by_language[category])
             for category in repositories_by_language.keys():
                 repositories_by_language[category].sort(key=lambda x: x.watchers, reverse = True)
+        else:
+            for category in github_repositories_by_language.keys():
+                repositories_by_language[category].extend(github_repositories_by_language[category])
     except ObjectDoesNotExist:
         github_authed = False
     try:
@@ -301,6 +311,9 @@ def owned(request):
                 repositories_by_language[category].extend(bitbucket_repositories_by_language[category])
             for category in repositories_by_language.keys():
                 repositories_by_language[category].sort(key=lambda x: x.watchers, reverse = True)
+        else:
+            for category in bitbucket_repositories_by_language.keys():
+                repositories_by_language[category].extend(bitbucket_repositories_by_language[category])
     except ObjectDoesNotExist:
         bitbucket_authed = False
     if bitbucket_authed or github_authed:
