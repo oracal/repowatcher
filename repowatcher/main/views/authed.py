@@ -170,7 +170,7 @@ def watched(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        #github_repository_user.save()
+        github_repository_user.save()
         if len(github_repositories_by_language) == 0:
             watched = github_provider.get_repositories(github_username, owned)
             count = 0
@@ -255,8 +255,7 @@ def owned(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        #github_repository_user.save()
-        logger.error(github_repositories_by_language)
+        github_repository_user.save()
         if len(github_repositories_by_language) == 0:
             owned = github_provider.get_repositories(github_username, owned)
             
