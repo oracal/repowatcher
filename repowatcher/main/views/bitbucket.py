@@ -143,7 +143,6 @@ def bitbucket_username(request, username):
     # Get repository information
     owned_repositories, repository_user = bitbucket_provider.retrieve_owned_repositories_list(username)
     watched_repositories, repository_user = bitbucket_provider.retrieve_watched_repositories_list(username)
-    repository_user.save()
     
     if len(owned_repositories) == 0:
         owned = bitbucket_provider.get_owned_repositories(username)

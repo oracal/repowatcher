@@ -88,7 +88,6 @@ def github_username_watched(request,username,owned=False):
     github_provider = GithubProvider(user)
 
     repositories_by_language, repository_user = github_provider.retrieve_repositories_dict(username, owned)
-    repository_user.save()
     if len(repositories_by_language) == 0:
         watched = github_provider.get_repositories(username, owned)
         count = 0

@@ -79,20 +79,14 @@ def authed(request):
                     RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = False)
                     
                 repositories.append(repository)
-        github_repository_user.watched = len(repositories)
-        github_repository_user.save()
+            github_repository_user.watched = len(repositories)
+            github_repository_user.save()
     except ObjectDoesNotExist:
         github_authed = False
-        
-        
-        
-        
-        
-        
+
     try:
         bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
         bitbucket_provider = BitbucketProvider(user)
-        response = None
         # Get user information
         update = False
         try:
@@ -109,9 +103,8 @@ def authed(request):
             bitbucket_user_event['host'] = 'bitbucket'
             bitbucket_user_event['created_on'] = dateutil.parser.parse(bitbucket_user_event['utc_created_on'])
         # Get repository information
-        owned_repositories, repository_user = bitbucket_provider.retrieve_owned_repositories_list(bitbucket_username)
-        watched_repositories, repository_user = bitbucket_provider.retrieve_watched_repositories_list(bitbucket_username)
-        repository_user.save()
+        owned_repositories, _ = bitbucket_provider.retrieve_owned_repositories_list(bitbucket_username)
+        watched_repositories, _ = bitbucket_provider.retrieve_watched_repositories_list(bitbucket_username)
         
         if len(owned_repositories) == 0:
             owned = bitbucket_provider.get_owned_repositories(bitbucket_username)
@@ -170,7 +163,6 @@ def watched(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        github_repository_user.save()
         if len(github_repositories_by_language) == 0:
             watched = github_provider.get_repositories(github_username, owned)
             count = 0
@@ -206,7 +198,6 @@ def watched(request):
         bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
         bitbucket_provider = BitbucketProvider(user)
         bitbucket_repositories_by_language, bitbucket_repository_user = bitbucket_provider.retrieve_watched_repositories_dict(bitbucket_username)
-        bitbucket_repository_user.save()
         if len(bitbucket_repositories_by_language) == 0:
             watched = bitbucket_provider.get_watched_repositories(bitbucket_username)
             count = 0
@@ -255,7 +246,6 @@ def owned(request):
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
-        github_repository_user.save()
         if len(github_repositories_by_language) == 0:
             owned = github_provider.get_repositories(github_username, owned)
             
@@ -290,7 +280,6 @@ def owned(request):
         bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
         bitbucket_provider = BitbucketProvider(user)
         bitbucket_repositories_by_language, bitbucket_repository_user = bitbucket_provider.retrieve_owned_repositories_dict(bitbucket_username)
-        bitbucket_repository_user.save()
         if len(bitbucket_repositories_by_language)==0:
             owned = bitbucket_provider.get_owned_repositories(bitbucket_username)
             for repo in owned:
