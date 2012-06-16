@@ -8,6 +8,9 @@ from repowatcher.main.models import RepositoryUser, Repository
 from repowatcher.main.tasks import get_events
 import json
 import requests
+import slumber
+import logging
+logger = logging.getLogger(__name__)
 
 
 class BitbucketProvider(ProviderBase):
@@ -22,13 +25,14 @@ class BitbucketProvider(ProviderBase):
                 oauth_hook = OAuthHook(self.tokens['oauth_token'], self.tokens['oauth_token_secret'], header_auth=False)
                 self.client = requests.session(hooks={'pre_request': oauth_hook})
             except ObjectDoesNotExist:
-                self.client = requests.session()
+                self.client = session = requests.session()
         else:
             self.client = requests.session()
+        self.slumber = slumber.API("https://api.bitbucket.org/1.0/", session=self.client)
 
     def get_user_details(self, username):
         try:
-            user_dict = json.loads(self.client.get('https://api.bitbucket.org/1.0/users/%s/'%(username,)).text)['user']
+            user_dict = self.slumber.users(username).get()['user']
         except Exception:
             user_dict = {}
         return user_dict
@@ -66,17 +70,16 @@ class BitbucketProvider(ProviderBase):
         return RepositoryUser.objects.get(slug=self.host+'/'+username)
 
     def get_user_events(self, username):
-        r = self.client.get('https://api.bitbucket.org/1.0/users/%s/events/'%(username.lower(),))
         try:
-            user_events = json.loads(r.text)['events']
-        except ValueError:
+            user_events = self.slumber.users(username.lower()).events.get()['events']
+        except Exception:
             user_events = []
         return user_events
 
     def get_repository_details(self, owner, repository):
+        slug = '/'.join((owner.lower(), repository.lower()))
         try:
-            response = self.client.get('https://api.bitbucket.org/1.0/repositories/%s/%s/' % (owner.lower(), repository.lower()))
-            repository_dict = json.loads(response.text)
+            repository_dict = self.slumber.repositories(slug).get()
         except Exception:
             raise Http404
         return repository_dict
@@ -106,9 +109,9 @@ class BitbucketProvider(ProviderBase):
         return repo
     
     def get_repository_events(self, owner, repository):
+        slug = '/'.join((owner.lower(), repository.lower()))
         try:
-            response = self.client.get('https://api.bitbucket.org/1.0/repositories/%s/%s/events/'%(owner.lower(),repository.lower()))
-            repo_events = json.loads(response.text)['events']
+            repo_events = self.slumber.repositories(slug).events.get()['events']
         except Exception:
             repo_events =[]
         return repo_events
@@ -132,14 +135,12 @@ class BitbucketProvider(ProviderBase):
         repositories = []
         if owned:
             try:
-                response = json.loads(self.client.get('https://api.bitbucket.org/1.0/users/%s/'%(username,)).text)
-                repositories = response['repositories']
+                repositories = self.slumber.users(username).get()['repositories']
             except Exception:
                 pass
         else:
             try:
-                response = self.client.get('https://api.bitbucket.org/1.0/user/follows/')
-                repositories = json.loads(response.text)
+                repositories = self.slumber.user.follows.get()
             except Exception:
                 pass
         
@@ -165,8 +166,7 @@ class BitbucketProvider(ProviderBase):
 
     def search_repository(self, repository):
         try:
-            response = self.client.get('https://api.bitbucket.org/1.0/repositories/',params={'name':repository,'limit':100})
-            bitbucket_repositories = json.loads(response.text)['repositories'][:100]
+            bitbucket_repositories = self.slumber.repositories.get(name=repository, limit=100)['repositories'][:100]
         except Exception:
             bitbucket_repositories = []
         return bitbucket_repositories
