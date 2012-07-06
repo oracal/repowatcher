@@ -22,11 +22,11 @@ mercurial==2.0.1
 oauth2==1.5.211
 psycopg2==2.4.5
 pycrypto==2.6
-pygithub3==0.3
+pygithub3==0.4.1
 python-dateutil==1.5
 python-openid==2.2.5
 redis==2.4.11
-requests==0.11.1
+requests==0.13.2
 requests-oauth==0.3.0
 slumber==0.4.2
 virtualenv==1.7
