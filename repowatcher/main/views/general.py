@@ -48,9 +48,13 @@ def about(request):
 
 
 @cache_control(max_age=60 * 60 * 24)
-def typeahead(request):
-    repositories = Repository.objects.filter(private=False).values('name').distinct()
-    users = Repository.objects.filter(private=False).values('owner').distinct()
+def typeahead(request, value = None):
+    if value is None:
+        repositories = Repository.objects.filter(private=False).values('name').distinct()
+        users = Repository.objects.filter(private=False).values('owner').distinct()
+    else:
+        repositories = Repository.objects.filter(private=False).filter(name__contains=value).values('name').distinct()
+        users = Repository.objects.filter(private=False).filter(owner__contains=value).values('owner').distinct()
     typeahead_list = []
     for repository in repositories:
         typeahead_list.append(repository['name']) 

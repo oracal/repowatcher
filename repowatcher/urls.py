@@ -65,7 +65,8 @@ urlpatterns = patterns('repowatcher.main.views',
     
     # search views
     
-    url(r'^typeahead/$', 'typeahead'),
+    url(r'^typeahead/$', 'typeahead' , {}, 'typeahead'),
+    url(r'^typeahead/(?P<value>[^/]+)/$', 'typeahead', {}, 'typeahead_value'),
     url(r'^search/$', 'search'),
     url(r'^github/watched/popular/$', 'github_watched_popular'),
     url(r'^bitbucket/watched/popular/$', 'bitbucket_watched_popular'),

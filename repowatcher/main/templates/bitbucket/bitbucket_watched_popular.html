@@ -51,7 +51,7 @@ height:35px;
 				<table class="repositories table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
 					<thead>
 						<tr>
-							<th style="overflow:hidden;"><a href="{% url repowatcher.main.views.bitbucket_watched_language_popular category %}">{{category}}</a></th>
+							<th style="overflow:hidden;"><a href="{% url repowatcher.main.views.bitbucket_watched_language_popular category|urlencode:"/+:-" %}">{{category}}</a></th>
 						</tr>
 					</thead>
 					<tbody class="connectedSortable">

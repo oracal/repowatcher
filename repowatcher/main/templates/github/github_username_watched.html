@@ -53,9 +53,9 @@ height:35px;
 					<thead>
 						<tr style = "cursor:move;"">
 							{% if owned %}
-							<th><a href ="{% url github_username_category_owned username category %}">{{category}}</a></th>
+							<th><a href ="{% url github_username_category_owned username category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% else %}
-							<th><a href ="{% url github_username_category_watched username category %}">{{category}}</a></th>
+							<th><a href ="{% url github_username_category_watched username category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% endif %}
 						</tr>
 					</thead>

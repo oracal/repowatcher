@@ -104,9 +104,9 @@
 			</div>
 			<div class="modal-footer">
 				{% if owned %}
-				<a id ="update" href="{% url bitbucket_username_category_owned_update username category %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="update" href="{% url bitbucket_username_category_owned_update username category|urlencode:"/+:-" %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id ="update" href="{% url bitbucket_username_category_watched_update username category %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="update" href="{% url bitbucket_username_category_watched_update username category|urlencode:"/+:-" %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
 			</div>
 		</div>
@@ -121,9 +121,9 @@
 			</div>
 			<div class="modal-footer">
 				{% if owned %}
-				<a id ="refresh" href="{% url bitbucket_username_category_owned_refresh username category %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="refresh" href="{% url bitbucket_username_category_owned_refresh username category|urlencode:"/+:-" %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id ="refresh" href="{% url bitbucket_username_category_watched_refresh username category %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="refresh" href="{% url bitbucket_username_category_watched_refresh username category|urlencode:"/+:-" %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
 				
 			</div>
@@ -186,9 +186,9 @@
 		  $.ajax({
 	  type: 'POST',
 	  {% if owned %}
-	  url: '{% url bitbucket_username_category_owned_save username category %}',
+	  url: '{% url bitbucket_username_category_owned_save username category|urlencode:"/+:-" %}',
 	  {% else %}
-	  url: '{% url bitbucket_username_category_watched_save username category %}',
+	  url: '{% url bitbucket_username_category_watched_save username category|urlencode:"/+:-" %}',
 	  {% endif %}
 	  data: {
 	    order: JSON.stringify(serialize()),

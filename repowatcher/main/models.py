@@ -84,6 +84,7 @@ class RepositoryUserRepositoryLink(models.Model):
     
     class Meta:
         ordering = ['repository__language', '-repository__watchers']
+        unique_together = ("user", "repository", "owned")
     
 class UserProfile(models.Model):
     user = models.OneToOneField(User)

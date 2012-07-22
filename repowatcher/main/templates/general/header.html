@@ -88,17 +88,56 @@ color:#99CFEB
 {% block script %}{% endblock %}
 <script type="text/javascript">
 $(function(){
-$.ajax({
-    url: '{% url repowatcher.main.views.typeahead %}',
-    success: function(data) {
-    	$('#search').typeahead({source: data, items:5});
-    },
-});
+	
+	
+	
+$("#search").typeahead({items:5})
+.on('keyup', function(event){
+	event.stopPropagation();
+    event.preventDefault();
+    
+  	//filter out up/down, tab, enter, and escape keys
+    if( $.inArray(event.keyCode,[40,38,9,13,27]) === -1 ){
+    	
+    	
 
-$("#search").keyup(function(event){
+        var self = $(this);
+        
+        if(self.data("active")){
+        	self.data("active", false);
+        	return;
+        }
+        
+      	//set typeahead source to empty
+        self.data('typeahead').source = [];
+      	if (self.data('ajaxCall') && self.data('ajaxCall').readystate != 4){
+      		self.data('ajaxCall').abort();
+      	}
+		
+        //active used so we aren't triggering duplicate keyup events
+        if(self.val().length > 2){
+
+			var ajaxCall = $.ajax({
+			    url: '{% url repowatcher.main.views.typeahead %}' + self.val(),
+			    success: function(data) {
+			    	
+			    	//set your results into the typehead's source 
+                    self.data('typeahead').source = data;
+                    self.data('active', true);
+	
+			    	//trigger keyup on the typeahead to make it search
+                    self.trigger('keyup');
+
+			    },
+			});
+			self.data('ajaxCall', ajaxCall);
+		
+		}
+    }
     if(event.keyCode == 13){
         $("#searchButton").click();
     }
+
 });
 
 });

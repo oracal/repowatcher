@@ -23,9 +23,10 @@ class BitbucketProvider(ProviderBase):
             try:
                 self.tokens = user.social_auth.get(provider=self.host).tokens
                 oauth_hook = OAuthHook(self.tokens['oauth_token'], self.tokens['oauth_token_secret'], header_auth=False)
+                logger.error(self.tokens['oauth_token']+"-"+self.tokens['oauth_token_secret'])
                 self.client = requests.session(hooks={'pre_request': oauth_hook})
             except ObjectDoesNotExist:
-                self.client = session = requests.session()
+                self.client = requests.session()
         else:
             self.client = requests.session()
         self.slumber = slumber.API("https://api.bitbucket.org/1.0/", session=self.client)
