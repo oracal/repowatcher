@@ -36,11 +36,11 @@ def github(request):
         return HttpResponseRedirect(reverse('repowatcher.main.views.authed'))
     return HttpResponseRedirect(reverse(github_username, kwargs={'username': username}))
 
-def github_username(request,username):
+def github_username(request, username):
     username = urllib.unquote(username)
     user = request.user
     repository_user = None
-    update = False        
+    update = False
     github_provider = GithubProvider(user)
     # Get user information
     try:
@@ -49,13 +49,13 @@ def github_username(request,username):
         update = True
         repository_user = RepositoryUser()
     if update or (datetime.now() - repository_user.last_modified) > timedelta(days = 1):
-        
+
         github_user_dict = github_provider.get_user_details(username)
         repository_user = github_provider.create_or_update_user_details(github_user_dict, repository_user)
         repository_user.save()
-    
+
     user_events = github_provider.get_user_events(username)
-    
+
     # Get repository information
     repositories, _ = github_provider.retrieve_watched_repositories_list(username)
     if len(repositories) == 0:

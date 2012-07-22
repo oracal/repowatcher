@@ -171,7 +171,7 @@
 					{% endif %}
 					{% if github_repository_user.public_repos != None and bitbucket_repository_user.public_repos != None %}
 					<tr>
-						<td>Github/Bitbucket Public Repositories</td><td><a href="{% url github_username_owned github_repository_user.login %}">{{github_repository_user.public_repos}}</a> / <a href="{% url bitbucket_username_owned bitbucket_repository_user.login %}">{{bitbucket_repository_user.public_repos}}</a> <a href="{% url owned %}">View →</a></td>
+						<td>Github/Bitbucket Public Repositories</td><td><a href="{% url github_username_owned github_repository_user.login %}">{{github_repository_user.public_repos}}</a> / <a href="{% url bitbucket_username_owned bitbucket_repository_user.login %}">{{bitbucket_repository_user.public_repos}}</a> <a href="{% url authed_owned %}">View →</a></td>
 					</tr>
 					{% elif github_repository_user.public_repos != None %}
 					<tr>
@@ -184,7 +184,7 @@
 					{% endif %}
 					{% if github_repository_user.watched != None and bitbucket_repository_user.watched != None %}
 					<tr>
-						<td>Github/Bitbucket Watched Repositories</td><td><a href="{% url github_username_watched github_repository_user.login %}">{{github_repository_user.watched}}</a> / <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">{{bitbucket_repository_user.watched}}</a> <a href="{% url watched %}">View →</a></td>
+						<td>Github/Bitbucket Watched Repositories</td><td><a href="{% url github_username_watched github_repository_user.login %}">{{github_repository_user.watched}}</a> / <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">{{bitbucket_repository_user.watched}}</a> <a href="{% url authed_watched %}">View →</a></td>
 					</tr>
 					{% elif github_repository_user.watched != None %}
 					<tr>

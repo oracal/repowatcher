@@ -30,9 +30,9 @@ height:35px;
 					<thead>
 						<tr>
 							{% if owned %}
-							<th style="overflow:hidden;"><a href ="{% url category_owned category|urlencode:"/+:-" %}">{{category}}</a></th>
+							<th style="overflow:hidden;"><a href ="{% url authed_category_owned category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% else %}
-							<th style="overflow:hidden;"><a href ="{% url category_watched category|urlencode:"/+:-" %}">{{category}}</a></th>
+							<th style="overflow:hidden;"><a href ="{% url authed_category_watched category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% endif %}
 						</tr>
 					</thead>

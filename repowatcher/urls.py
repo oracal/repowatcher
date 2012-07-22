@@ -11,12 +11,12 @@ urlpatterns = patterns('repowatcher.main.views',
     # authed user account page
 
     url(r'^authed/$', 'authed'),
-    url(r'^authed/owned/$', 'owned',{},'owned'),
-    url(r'^authed/watched/$', 'watched',{},'watched'),
+    url(r'^authed/owned/$', 'authed_owned',{},'authed_owned'),
+    url(r'^authed/watched/$', 'authed_watched',{},'authed_watched'),
     url(r'^authed/logout/$', 'authed_logout',{},'authed_logout'),
 
-    url(r'authed/(?P<category>[^/]+)/watched/$', 'category_watched',{},'category_watched'),
-    url(r'authed/(?P<category>[^/]+)/owned/$', 'category_owned',{},'category_owned'),
+    url(r'authed/(?P<category>[^/]+)/watched/$', 'authed_category_watched',{},'authed_category_watched'),
+    url(r'authed/(?P<category>[^/]+)/owned/$', 'authed_category_owned',{},'authed_category_owned'),
 
     # github public user page
 

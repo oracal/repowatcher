@@ -73,7 +73,7 @@
 				
 		{% elif event.type == "MemberEvent" %}
 		{# added #}
-		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }} <a href ="{% url repowatcher.main.views.github_username event.payload.member.login %}">{{ event.payload.member.login }}</a> to <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
+		<div style ="margin: 5px 15px 0px 15px; float:left;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}">{{ event.actor.login }}</a> {{ event.payload.action }}{% if event.payload.member.login %} <a href ="{% url repowatcher.main.views.github_username event.payload.member.login %}">{{ event.payload.member.login }}</a>{% else %} <a href ="{% url repowatcher.main.views.github_username event.payload.member %}">{{ event.payload.member }}</a>{% endif %} to <a href = "/github/repo/{{ event.repo.name }}">{{ event.repo.name }}</a> <strong><span class="timeago" title="{{event.created_at}}">{{event.created_at|date:"r"}}</span></strong></div>
 		</br><div style="margin: 10px 15px 0px 15px; "><div class = "gravatar" style="padding:1px; margin-top:3px; margin-bottom:5px; float: left;  margin-right:10px;"><a href = "{% url repowatcher.main.views.github_username event.actor.login %}"><img style = "float:left;" height="42" src="https://secure.gravatar.com/avatar/{{event.actor.gravatar_id}}?s=140&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="42"></a></div></div>
 				
 		

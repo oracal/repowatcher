@@ -149,7 +149,7 @@ def authed(request):
     return render_to_response('authed.html', {'user_events':user_events,'github_repository_user':github_repository_user,'bitbucket_repository_user':bitbucket_repository_user,'github_authed':github_authed,'bitbucket_authed':bitbucket_authed}, context_instance=RequestContext(request))
 
 @login_required
-def watched(request):
+def authed_watched(request):
     repositories_by_language = defaultdict(list)
     github_repositories_by_language = defaultdict(list)
     bitbucket_repositories_by_language = defaultdict(list)
@@ -231,7 +231,7 @@ def watched(request):
         return HttpResponseRedirect(reverse('repowatcher.main.views.authed'))
 
 @login_required
-def owned(request):
+def authed_owned(request):
     repositories_by_language = defaultdict(list)
     github_repositories_by_language = defaultdict(list)
     bitbucket_repositories_by_language = defaultdict(list)
@@ -247,10 +247,10 @@ def owned(request):
         github_provider = GithubProvider(user)
         github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
         if len(github_repositories_by_language) == 0:
-            owned = github_provider.get_repositories(github_username, owned)
+            owned_repos = github_provider.get_repositories(github_username, owned)
             
             count = 0
-            for repo in owned:
+            for repo in owned_repos:
                 update = False
                 try:
                     repository = github_provider.retrieve_repository_details(repo['owner'], repo['name'])
@@ -281,8 +281,8 @@ def owned(request):
         bitbucket_provider = BitbucketProvider(user)
         bitbucket_repositories_by_language, bitbucket_repository_user = bitbucket_provider.retrieve_owned_repositories_dict(bitbucket_username)
         if len(bitbucket_repositories_by_language)==0:
-            owned = bitbucket_provider.get_owned_repositories(bitbucket_username)
-            for repo in owned:
+            owned_repos = bitbucket_provider.get_owned_repositories(bitbucket_username)
+            for repo in owned_repos:
                 update = False
                 try:
                     repository = bitbucket_provider.retrieve_repository_details(repo['owner'], repo['name'])
@@ -310,7 +310,7 @@ def owned(request):
         return HttpResponseRedirect(reverse('repowatcher.main.views.authed'))
     
 @login_required
-def category_watched(request,category):
+def authed_category_watched(request,category):
     """has all github repos and the latest 30 events for a username with a specific category"""
     owned = False
     category = urllib.unquote(category).lower()
@@ -405,7 +405,7 @@ def category_watched(request,category):
         return HttpResponseRedirect(reverse('repowatcher.main.views.authed'))
     
 @login_required
-def category_owned(request,category):
+def authed_category_owned(request,category):
     """has all github repos and the latest 30 events for a username with a specific category"""
     owned = True
     category = urllib.unquote(category).lower()

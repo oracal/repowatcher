@@ -19,5 +19,5 @@ bitbucket_username_watched_save, bitbucket_username_watched_update,\
 bitbucket_username_owned_update, bitbucket_username_category_owned_update,\
 bitbucket_username_category_watched_update, bitbucket_watched_popular,\
 bitbucket_watched_language_popular
-from authed import authed, category_owned, category_watched,\
-owned, watched
+from authed import authed, authed_category_owned, authed_category_watched,\
+authed_owned, authed_watched
