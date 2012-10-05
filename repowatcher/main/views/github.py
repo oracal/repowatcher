@@ -18,7 +18,6 @@ import logging
 import urllib
 logger = logging.getLogger(__name__)
 
-
 @never_cache
 def anonymous_github_user(request):
     username = request.GET.get('username', '')
@@ -62,7 +61,7 @@ def github_username(request, username):
         for repo in github_provider.get_watched_repositories(username):
             update = False
             try:
-                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
             except ObjectDoesNotExist:
                 update = True
                 repository = Repository()
@@ -95,7 +94,7 @@ def github_username_watched(request,username,owned=False):
         for repo in watched:
             update = False
             try:
-                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
             except ObjectDoesNotExist:
                 update = True
                 repository = Repository()
@@ -160,7 +159,7 @@ def github_username_watched_update(request,username,owned = False):
     res.status_code = 401
     return res
 
-@login_required            
+@login_required
 @never_cache
 def github_username_watched_refresh(request,username,owned = False):
     user = request.user
@@ -170,7 +169,10 @@ def github_username_watched_refresh(request,username,owned = False):
         if username == github_username:
             profile = user.get_profile()
             profile.save()
-            links = profile.userrepositorylink_set.filter(owned=owned).filter(repository__host='github')
+            try:
+                links = profile.userrepositorylink_set.filter(owned=owned).filter(repository__host='github')
+            except ObjectDoesNotExist:
+                pass
             links.delete()
             if owned:
                 return HttpResponseRedirect(reverse('github_username_owned', kwargs={'username': username}))
@@ -198,7 +200,7 @@ def github_username_category_watched(request,username,category,owned = False):
         for repo in watched:
             update = False
             try:
-                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
             except ObjectDoesNotExist:
                 update = True
                 repository = Repository()
@@ -216,7 +218,7 @@ def github_username_category_watched(request,username,category,owned = False):
         if not owned:   
             repository_user.watched = count
         repository_user.save()
-    watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
+        watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
 
     # Get repository events
     repo_events = []
@@ -377,7 +379,7 @@ def github_repo_unwatch(request, owner, repo):
     user = request.user
     if user.is_authenticated():
         try:
-            host_slug = '/'.join(('github',owner,repo))
+            host_slug = ('/'.join(('github',owner,repo))).lower()
             profile = user.get_profile()
             repository = Repository.objects.get(host_slug= host_slug)
             UserRepositoryLink.objects.filter(user = profile).filter(repository = repository).filter(owned = False).delete()

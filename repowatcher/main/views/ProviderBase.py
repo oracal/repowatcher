@@ -68,14 +68,14 @@ class ProviderBase(object):
             for order, item in enumerate(value,start=1):
                 if item !='':
                     try:
-                        repository = Repository.objects.get(host_slug=self.host+'/'+item)
+                        repository = Repository.objects.get(host_slug=self.host+'/'+item.lower())
                     except ObjectDoesNotExist:
                         repository = Repository()
                         update = True
                     if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
-                        owner, repository = item.split('/')
-                        repository_dict = self.get_repository_details(owner, repository)
-                        repository = self.create_or_update_repository_details(repository_dict)
+                        owner, repository_name = item.split('/')
+                        repository_dict = self.get_repository_details(owner, repository_name)
+                        repository = self.create_or_update_repository_details(repository_dict, repository)
                         if not repository.private:
                             repository.save()
                     try:
@@ -109,7 +109,7 @@ class ProviderBase(object):
             except ObjectDoesNotExist:
                 pass
         try:
-            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username)
+            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
             if api_only:
                 repository_links = repository_user.repositoryuserrepositorylink_set.filter(owned=owned).filter(repository__host=self.host).select_related('repository')
                 oldest_modification = repository_links.aggregate(oldest_modification=Min('last_modified'))['oldest_modification']
@@ -142,7 +142,7 @@ class ProviderBase(object):
             except ObjectDoesNotExist:
                 pass
         try:
-            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username)
+            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
             if api_only:
                 repository_links = repository_user.repositoryuserrepositorylink_set.filter(owned=owned).filter(repository__host=self.host).select_related('repository')
                 oldest_modification = repository_links.aggregate(oldest_modification=Min('last_modified'))['oldest_modification']
@@ -192,7 +192,7 @@ class ProviderBase(object):
             except ObjectDoesNotExist:
                 pass
         try:
-            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username)
+            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
             if api_only:
                 repository_links = repository_user.repositoryuserrepositorylink_set.filter(repository__host=self.host).filter(repository__language__iexact=category).filter(owned=owned).select_related('repository')
                 oldest_modification = repository_links.aggregate(oldest_modification=Min('last_modified'))['oldest_modification']
@@ -209,7 +209,7 @@ class ProviderBase(object):
 
     def update_repositories(self, username, owned):
         try:
-            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username) 
+            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username.lower()) 
             repository_links = repository_user.repositoryuserrepositorylink_set.filter(owned=owned).filter(repository__host=self.host).select_related('repository')
             repository_links.delete()
         except ObjectDoesNotExist:
@@ -238,7 +238,7 @@ class ProviderBase(object):
         # saves the repositories and adds any new ones at an order value above the max for each category
         for repo in watched:
             try:
-                repository = Repository.objects.get(host_slug=self.host+'/'+repo['owner']+'/'+repo['name'])
+                repository = Repository.objects.get(host_slug=self.host+'/'+repo['owner'].lower()+'/'+repo['name'].lower())
             except ObjectDoesNotExist:
                 repository = Repository()
             repository = self.create_or_update_repository_details(repo, repository)
@@ -271,7 +271,7 @@ class ProviderBase(object):
     def update_category_repositories(self, username, category, owned):
         profile = self.user.get_profile()
         try:
-            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username) 
+            repository_user = RepositoryUser.objects.get(slug=self.host+'/'+username.lower()) 
             repository_links = repository_user.repositoryuserrepositorylink_set.filter(owned=owned).filter(repository__host=self.host).select_related('repository')
             repository_links.delete()
         except ObjectDoesNotExist:
@@ -299,7 +299,7 @@ class ProviderBase(object):
         watched_filtered = []
         for repo in watched:
             try:
-                repository = Repository.objects.get(host_slug=self.host+'/'+repo['owner']+'/'+repo['name'])
+                repository = Repository.objects.get(host_slug=self.host+'/'+repo['owner'].lower()+'/'+repo['name'].lower())
             except ObjectDoesNotExist:
                 repository = Repository()
             repository = self.create_or_update_repository_details(repo, repository)

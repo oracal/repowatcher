@@ -21,11 +21,8 @@ def expire_view_cache(view_name, args = [], kwargs={}, namespace=None, key_prefi
     if namespace:
         view_name = namespace + ":" + view_name
     request.path = reverse(view_name, args = args, kwargs=kwargs)
-    logger.debug(request.path)
-    logger.debug(key_prefix)
     # get cache key, expire if the cached item exists:
     key = cache.make_key(get_cache_key(request, key_prefix=key_prefix))
-    logger.debug(key)
     if key:
         if cache.get(key):
             cache.delete(key)

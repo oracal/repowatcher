@@ -68,7 +68,7 @@ class BitbucketProvider(ProviderBase):
         return repository_user
     
     def retrieve_user_details(self, username):
-        return RepositoryUser.objects.get(slug=self.host+'/'+username)
+        return RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
 
     def get_user_events(self, username):
         try:
@@ -92,6 +92,10 @@ class BitbucketProvider(ProviderBase):
         key_map={'owner':'owner','name':'name', 'website':'homepage','language':'language','description':'description','created_on':'created_at','last_updated':'pushed_at','scm':'scm','is_private':'private', 'followers_count':'watchers'}
         keys = key_map.keys()
         for key,value in repository_dict.iteritems():
+            try:
+                value = value.replace("/","")
+            except AttributeError:
+                pass
             if key in keys:
                 setattr(repository,key_map[key],value)
             else:
@@ -105,7 +109,7 @@ class BitbucketProvider(ProviderBase):
         return repository
 
     def retrieve_repository_details(self, owner, repository):
-        host_slug = '/'.join((self.host,owner,repository))
+        host_slug = ('/'.join((self.host,owner,repository))).lower()
         repo = Repository.objects.get(host_slug= host_slug)
         return repo
     

@@ -10,6 +10,7 @@ from django.template.context import RequestContext
 from django.views.decorators.cache import never_cache, cache_control
 from oauth_hook import OAuthHook
 from repowatcher.main.models import RepositoryCategory, Repository
+from urllib import urlencode, quote
 import json
 import logging
 import requests
@@ -99,8 +100,10 @@ def search(request):
                 bitbucket_repositories = []
         for repo in github_repositories:
             update = False
+            repo['owner'] = repo['owner'].lower().replace("/", "")
+            repo['name'] = repo['name'].lower().replace("/", "")
             try:
-                repository = Repository.objects.get(slug= repo['owner'] + '/' + repo['name'], host ='github')
+                repository = Repository.objects.get(slug= repo['owner'].lower() + '/' + repo['name'], host ='github')
             except ObjectDoesNotExist:
                 update = True
                 repository = Repository()
@@ -112,6 +115,8 @@ def search(request):
             repositories_by_language[repository.language].append(repository)
         for repo in bitbucket_repositories:
             update = False
+            repo['owner'] = repo['owner'].lower().replace("/", "")
+            repo['name'] = repo['name'].lower().replace("/", "")
             try:
                 repository = Repository.objects.get(slug= repo['owner'] + '/' + repo['name'], host='bitbucket')
             except ObjectDoesNotExist:

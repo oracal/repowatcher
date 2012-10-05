@@ -66,7 +66,7 @@ def authed(request):
             for repo in watched:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()
@@ -169,7 +169,7 @@ def authed_watched(request):
             for repo in watched:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()
@@ -338,7 +338,7 @@ def authed_category_watched(request,category):
             for repo in watched:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()
@@ -379,7 +379,7 @@ def authed_category_watched(request,category):
             for repo in watched:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()
@@ -432,7 +432,7 @@ def authed_category_owned(request,category):
             for repo in watched:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()
@@ -470,7 +470,7 @@ def authed_category_owned(request,category):
             for repo in owned:
                 update = False
                 try:
-                    repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'] + '/' + repo['name'])
+                    repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'].lower() + '/' + repo['name'].lower())
                 except ObjectDoesNotExist:
                     update = True
                     repository = Repository()

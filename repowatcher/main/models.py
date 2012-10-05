@@ -7,6 +7,8 @@ from django.db.models.signals import post_save, pre_save
 from repowatcher.main.utils import expire_view_cache
 from social_auth.fields import JSONField
 import hashlib
+import logging
+logger = logging.getLogger(__name__)
 
 HOST_CHOICES = (
     (u'github', u'github'),
@@ -23,8 +25,8 @@ class Repository(models.Model):
     slug = SlugField(max_length=201)
     host_slug = SlugField(max_length=302,unique = True)
     language = CharField(max_length=100,null = True)
-    html_url = URLField(null = True)
-    homepage = URLField(null = True)
+    html_url = URLField(null = True, max_length=400)
+    homepage = URLField(null = True, max_length=400)
     watchers = PositiveIntegerField(null = True)
     created_at = DateTimeField(null = True)
     pushed_at = DateTimeField(null = True)
@@ -41,7 +43,7 @@ class Repository(models.Model):
         
 
     def save(self, *args, **kwargs):
-        self.slug = self.owner + '/' + self.name
+        self.slug = self.owner.lower() + '/' + self.name.lower()
         self.host_slug = self.host+'/'+self.slug
         if (self.html_url == None or self.html_url =='') and self.host =='bitbucket':
             self.html_url = 'https://bitbucket.org/%s/%s' % (self.owner,self.name)
@@ -72,7 +74,7 @@ class RepositoryUser(models.Model):
         unique_together = ("login", "host")
         
     def save(self, *args, **kwargs):
-        self.slug = self.host + '/' + self.login
+        self.slug = self.host + '/' + self.login.lower()
         super(RepositoryUser, self).save(*args, **kwargs)
         
     
@@ -106,41 +108,43 @@ class UserRepositoryLink(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
-        
+     
 def expire_cache(sender, instance, **kwargs):
-    
-    github_username = None
-    bitbucket_username = None
     try:
-        github_username = instance.user.social_auth.get(provider='github').extra_data['username']
-        github_prefix = github_username
-    except:
-        github_prefix = ''
-    try:
-        bitbucket_username = instance.user.social_auth.get(provider='bitbucket').extra_data['username']
-        bitbucket_prefix=bitbucket_username
-    except:
-        bitbucket_prefix = ''
-    custom_prefix = '.'.join((hashlib.md5(github_prefix).hexdigest(),hashlib.md5(bitbucket_prefix).hexdigest()))
-    expire_view_cache('owned', key_prefix=custom_prefix)
-    expire_view_cache('watched', key_prefix=custom_prefix)
-    if github_username:
-        expire_view_cache('github_username_owned', kwargs = {'username':github_username}, key_prefix=custom_prefix)
-        expire_view_cache('github_username_watched', kwargs = {'username':github_username}, key_prefix=custom_prefix)
-    if bitbucket_username:
-        expire_view_cache('bitbucket_username_owned', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
-        expire_view_cache('bitbucket_username_watched', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
-
-    category_links = instance.userrepositorylink_set.order_by('repository_category').distinct('repository_category') 
-    for category_link in category_links:
-        expire_view_cache('category_owned', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
-        expire_view_cache('category_watched', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+        github_username = None
+        bitbucket_username = None
+        try:
+            github_username = instance.user.social_auth.get(provider='github').extra_data['username']
+            github_prefix = github_username
+        except:
+            github_prefix = ''
+        try:
+            bitbucket_username = instance.user.social_auth.get(provider='bitbucket').extra_data['username']
+            bitbucket_prefix=bitbucket_username
+        except:
+            bitbucket_prefix = ''
+        custom_prefix = '.'.join((hashlib.md5(github_prefix).hexdigest(),hashlib.md5(bitbucket_prefix).hexdigest()))
+        expire_view_cache('authed_owned', key_prefix=custom_prefix)
+        expire_view_cache('authed_watched', key_prefix=custom_prefix)
         if github_username:
-            expire_view_cache('github_username_category_owned', kwargs = {'username':github_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
-            expire_view_cache('github_username_category_watched', kwargs = {'username':github_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+            expire_view_cache('github_username_owned', kwargs = {'username':github_username}, key_prefix=custom_prefix)
+            expire_view_cache('github_username_watched', kwargs = {'username':github_username}, key_prefix=custom_prefix)
         if bitbucket_username:
-            expire_view_cache('bitbucket_username_category_owned', kwargs = {'username':bitbucket_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
-            expire_view_cache('bitbucket_username_category_watched', kwargs = {'username':bitbucket_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+            expire_view_cache('bitbucket_username_owned', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
+            expire_view_cache('bitbucket_username_watched', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
+    
+        category_links = instance.userrepositorylink_set.order_by('repository_category').distinct('repository_category') 
+        for category_link in category_links:
+            expire_view_cache('authed_category_owned', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+            expire_view_cache('authed_category_watched', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+            if github_username:
+                expire_view_cache('github_username_category_owned', kwargs = {'username':github_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+                expire_view_cache('github_username_category_watched', kwargs = {'username':github_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+            if bitbucket_username:
+                expire_view_cache('bitbucket_username_category_owned', kwargs = {'username':bitbucket_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+                expire_view_cache('bitbucket_username_category_watched', kwargs = {'username':bitbucket_username,'category':category_link.repository_category.name}, key_prefix=custom_prefix)
+    except Exception as e:
+        logger.error(e)
 
 post_save.connect(create_user_profile, sender=User)
 

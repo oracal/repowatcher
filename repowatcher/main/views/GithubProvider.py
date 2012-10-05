@@ -45,7 +45,7 @@ class GithubProvider(ProviderBase):
             if key == "_attrs": 
                 continue
             if key in ['login', 'name', 'email', 'blog','following','followers','public_repos','created_at']:
-                setattr(repository_user,key,value)
+                setattr(repository_user, key, value)
             else:
                 if isinstance(value, datetime):
                     extra_data[key] = value.__str__()
@@ -56,7 +56,7 @@ class GithubProvider(ProviderBase):
         return repository_user
 
     def retrieve_user_details(self, username):
-        return RepositoryUser.objects.get(slug=self.host+'/'+username)
+        return RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
 
     def get_user_events(self, username):
         try:
@@ -108,11 +108,11 @@ class GithubProvider(ProviderBase):
         return repository
 
     def retrieve_repository_details(self, owner, repository):
-        host_slug = '/'.join((self.host, owner, repository))
+        host_slug = ('/'.join((self.host, owner, repository))).lower()
         return Repository.objects.get(host_slug=host_slug)
 
     def get_repository_events(self, owner, repository):
-        slug = owner + '/' + repository
+        slug = (owner + '/' + repository).lower()
         try:
             r = requests.get('https://api.github.com/repos/'+ slug + '/events')
             repo_events = json.loads(r.text)

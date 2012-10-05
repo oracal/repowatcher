@@ -330,7 +330,7 @@ def bitbucket_username_category_watched(request,username,category):
                 for repo in watched:
                     update = False
                     try:
-                        repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'] + '/' + repo['name'])
+                        repository = Repository.objects.get(host_slug= 'bitbucket/'+repo['owner'].lower() + '/' + repo['name'].lower())
                     except ObjectDoesNotExist:
                         update = True
                         repository = Repository()
