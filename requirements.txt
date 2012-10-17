@@ -1,4 +1,4 @@
-Django==1.4
+ngo==1.4
 amqplib==1.0.2
 anyjson==0.3.1
 argparse==1.2.1
@@ -22,11 +22,11 @@ mercurial==2.0.1
 oauth2==1.5.211
 psycopg2==2.4.5
 pycrypto==2.6
-pygithub3==0.4.1
+-e git+https://github.com/oracal/python-github3.git@aba80ae225389b5771f87180ed2f14a9dcf0f7c5#egg=pygithub3-dev
 python-dateutil==1.5
 python-openid==2.2.5
 redis==2.4.11
-requests==0.13.2
+requests==0.14.0
 requests-oauth==0.4.1
 slumber==0.4.2
 virtualenv==1.7

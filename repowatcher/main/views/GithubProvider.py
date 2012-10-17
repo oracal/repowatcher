@@ -1,4 +1,5 @@
 from ProviderBase import ProviderBase
+from django.conf import settings
 from datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from operator import itemgetter
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 class GithubProvider(ProviderBase):
 
     base_url = "https://api.github.com/"
-    
+
 
     def __init__(self, user):
         self.user = user
@@ -26,9 +27,9 @@ class GithubProvider(ProviderBase):
                 self.access_token=user.social_auth.get(provider=self.host).extra_data['access_token']
                 self.client = Github(token=self.access_token)
             except ObjectDoesNotExist:
-                self.client = Github()
+                self.client = Github(client_id=settings.GITHUB_APP_ID, client_secret=settings.GITHUB_API_SECRET)
         else:
-            self.client = Github()
+            self.client = Github(client_id=settings.GITHUB_APP_ID, client_secret=settings.GITHUB_API_SECRET)
 
     def get_user_details(self, username):
         try:
@@ -42,7 +43,7 @@ class GithubProvider(ProviderBase):
             repository_user = RepositoryUser()
         extra_data = {}
         for key, value in user_dict.iteritems():
-            if key == "_attrs": 
+            if key == "_attrs":
                 continue
             if key in ['login', 'name', 'email', 'blog','following','followers','public_repos','created_at']:
                 setattr(repository_user, key, value)
@@ -60,7 +61,7 @@ class GithubProvider(ProviderBase):
 
     def get_user_events(self, username):
         try:
-            r = requests.get(GithubProvider.base_url + 'users/'+ username + '/events')
+            r = requests.get(GithubProvider.base_url + 'users/'+ username + '/events', params = {"client_id": settings.GITHUB_APP_ID, "client_secret": settings.GITHUB_API_SECRET})
             user_events = json.loads(r.text)
         except Exception:
             user_events = []
@@ -72,13 +73,13 @@ class GithubProvider(ProviderBase):
             return vars(repo)
         except NotFound:
             raise Http404
-    
+
     def create_or_update_repository_details(self, repository_dict, repository = None):
         if repository is None:
             repository = Repository()
         extra_data = {}
         for key, value in repository_dict.iteritems():
-            if key == "_attrs": 
+            if key == "_attrs":
                 continue
             if key == 'owner' or key == "organization":
                 try:
@@ -114,7 +115,7 @@ class GithubProvider(ProviderBase):
     def get_repository_events(self, owner, repository):
         slug = (owner + '/' + repository).lower()
         try:
-            r = requests.get('https://api.github.com/repos/'+ slug + '/events')
+            r = requests.get('https://api.github.com/repos/'+ slug + '/events', params = {"client_id": settings.GITHUB_APP_ID, "client_secret": settings.GITHUB_API_SECRET})
             repo_events = json.loads(r.text)
         except Exception:
             repo_events = []
@@ -126,7 +127,7 @@ class GithubProvider(ProviderBase):
         url_requests = []
         for repository in repository_list:
             slug = '/'.join((repository.owner, repository.name))
-            request_urls.append(GithubProvider.base_url + 'repos/' + slug + '/events')
+            request_urls.append(GithubProvider.base_url + 'repos/' + slug + '/events' + '?client_id=' + settings.GITHUB_APP_ID + '&client_secret=' + settings.GITHUB_API_SECRET)
         for url in request_urls:
             url_requests.append(get_events.delay(url))
         for url_request in url_requests:
@@ -140,30 +141,30 @@ class GithubProvider(ProviderBase):
         if owned:
             generator = self.client.repos.list(user=username)
         else:
-            generator = self.client.repos.watchers.list_repos(user=username)
+            generator = self.client.repos.stargazers.list_repos(user=username)
         for repository in generator.iterator():
             repository_dict = vars(repository)
             repository_dict['owner'] = repository.owner.login
             yield repository_dict
-    
+
     def get_watched_status(self, owner, repository):
         watched = False
         if self.user.is_authenticated():
             try:
-                watched = self.client.repos.watchers.is_watching(owner, repository)
+                watched = self.client.repos.stargazers.is_starring(owner, repository)
             except Exception:
                 pass
         return watched
-    
+
     def watch(self, owner, repository):
-        self.client.repos.watchers.watch(owner, repository)
-    
+        self.client.repos.stargazers.star(owner, repository)
+
     def unwatch(self, owner, repository):
-        self.client.repos.watchers.unwatch(owner, repository)
-    
+        self.client.repos.stargazers.unstar(owner, repository)
+
     def search_user(self, username):
         if self.access_token is None:
-            params = {}
+            params = {"client_id": settings.GITHUB_APP_ID, "client_secret": settings.GITHUB_API_SECRET}
         else:
             params = {'access_token': self.access_token}
         try:
@@ -172,10 +173,10 @@ class GithubProvider(ProviderBase):
         except Exception:
             user_results = []
         return user_results
-    
+
     def search_repository(self, repository):
         if self.access_token is None:
-            params = {}
+            params = {"client_id": settings.GITHUB_APP_ID, "client_secret": settings.GITHUB_API_SECRET}
         else:
             params = {'access_token': self.access_token}
         try:
