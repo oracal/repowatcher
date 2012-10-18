@@ -36,24 +36,24 @@ class Repository(models.Model):
     scm = CharField(max_length=100,choices=SCM_CHOICES,null = True)
     host = CharField(max_length=100,choices=HOST_CHOICES)
     private = BooleanField(default = False)
-    
+
     class Meta:
         unique_together = ("owner", "name", "host")
         ordering = ['-watchers']
-        
+
 
     def save(self, *args, **kwargs):
         self.slug = self.owner.lower() + '/' + self.name.lower()
         self.host_slug = self.host+'/'+self.slug
         if (self.html_url == None or self.html_url =='') and self.host =='bitbucket':
             self.html_url = 'https://bitbucket.org/%s/%s' % (self.owner,self.name)
-        
+
         super(Repository, self).save(*args, **kwargs)
 
 
 class RepositoryCategory(models.Model):
     name = CharField(max_length=100)
-        
+
 class RepositoryUser(models.Model):
     login = CharField(max_length=100,db_index = True)
     name = CharField(max_length=100, null = True)
@@ -69,46 +69,47 @@ class RepositoryUser(models.Model):
     repositories = models.ManyToManyField(Repository, through='RepositoryUserRepositoryLink')
     watched = PositiveIntegerField(null = True)
     host = CharField(max_length=100,choices=HOST_CHOICES,db_index = True)
-    
+
     class Meta:
         unique_together = ("login", "host")
-        
+
     def save(self, *args, **kwargs):
         self.slug = self.host + '/' + self.login.lower()
         super(RepositoryUser, self).save(*args, **kwargs)
-        
-    
+
+
 class RepositoryUserRepositoryLink(models.Model):
     user = ForeignKey(RepositoryUser)
     repository = ForeignKey(Repository)
     owned = BooleanField(default = False)
     last_modified = DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['repository__language', '-repository__watchers']
         unique_together = ("user", "repository", "owned")
-    
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
     repositories = models.ManyToManyField(Repository, through='UserRepositoryLink')
     last_modified = DateTimeField(auto_now=True)
-    
+
 class UserRepositoryLink(models.Model):
     user = ForeignKey(UserProfile)
     repository = ForeignKey(Repository)
     order = PositiveIntegerField()
     repository_category = ForeignKey(RepositoryCategory)
     owned = BooleanField(default = False)
+    starred = BooleanField(default = False)
     last_modified = DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['repository_category__name','order']
         unique_together = ("user", "repository", 'owned')
-        
+
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
-     
+
 def expire_cache(sender, instance, **kwargs):
     try:
         github_username = None
@@ -132,8 +133,8 @@ def expire_cache(sender, instance, **kwargs):
         if bitbucket_username:
             expire_view_cache('bitbucket_username_owned', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
             expire_view_cache('bitbucket_username_watched', kwargs = {'username':bitbucket_username}, key_prefix=custom_prefix)
-    
-        category_links = instance.userrepositorylink_set.order_by('repository_category').distinct('repository_category') 
+
+        category_links = instance.userrepositorylink_set.order_by('repository_category').distinct('repository_category')
         for category_link in category_links:
             expire_view_cache('authed_category_owned', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
             expire_view_cache('authed_category_watched', kwargs = {'category':category_link.repository_category.name}, key_prefix=custom_prefix)
