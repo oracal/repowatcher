@@ -66,7 +66,7 @@ def bitbucket_username_watched(request,username):
             repositories_by_language, repository_user = bitbucket_provider.retrieve_watched_repositories_dict(username)
             repository_user.save()
             if len(repositories_by_language) == 0:
-        
+
                 repositories = bitbucket_provider.get_watched_repositories(username)
                 for repo in repositories:
                     update = False
@@ -95,7 +95,7 @@ def bitbucket_username_owned(request,username):
     bitbucket_provider = BitbucketProvider(user)
     repositories_by_language, repository_user = bitbucket_provider.retrieve_owned_repositories_dict(username)
     repository_user.save()
-        
+
     if len(repositories_by_language)==0:
         watched = bitbucket_provider.get_owned_repositories(username)
         for repo in watched:
@@ -125,7 +125,7 @@ def bitbucket_username(request, username):
     repository_user = None
     update = False
     response = None
-    
+
     bitbucket_provider = BitbucketProvider(user)
     # Get user information
     try:
@@ -139,11 +139,10 @@ def bitbucket_username(request, username):
         repository_user.save()
 
     user_events = bitbucket_provider.get_user_events(username)
-    
     # Get repository information
     owned_repositories, repository_user = bitbucket_provider.retrieve_owned_repositories_list(username)
     watched_repositories, repository_user = bitbucket_provider.retrieve_watched_repositories_list(username)
-    
+
     if len(owned_repositories) == 0:
         owned = bitbucket_provider.get_owned_repositories(username)
         for repo in owned:
@@ -163,7 +162,7 @@ def bitbucket_username(request, username):
             owned_repositories.append(repository)
         repository_user.public_repos = len(owned_repositories)
         repository_user.save()
-    
+
     if len(watched_repositories) == 0:
         watched = bitbucket_provider.get_watched_repositories(username)
         for repo in watched:
@@ -178,7 +177,7 @@ def bitbucket_username(request, username):
                 if not repository.private:
                     repository.save()
             watched_repositories.append(repository)
-        repository_user.watched = len(watched_repositories)
+        repository_user.starred = len(watched_repositories)
     return render_to_response('bitbucket_username.html', {'user_events':user_events,'repository_user':repository_user},context_instance=RequestContext(request))
 
 @ajax_required
@@ -205,7 +204,7 @@ def bitbucket_username_watched_save(request, username, owned=False):
     return res
 
 
-@login_required            
+@login_required
 @never_cache
 def bitbucket_username_watched_refresh(request,username,owned):
     user = request.user
@@ -252,7 +251,7 @@ def bitbucket_username_category_watched_save(request, username, category, owned=
     res.status_code = 401
     return res
 
-@login_required            
+@login_required
 @never_cache
 def bitbucket_username_category_watched_refresh(request, username, category, owned):
     user = request.user
@@ -284,7 +283,7 @@ def bitbucket_username_category_owned(request,username,category):
     bitbucket_provider = BitbucketProvider(user)
     watched_filtered, repository_user = bitbucket_provider.retrieve_owned_category_repositories(username, category)
     repository_user.save()
-        
+
     if len(watched_filtered) == 0:
         owned = bitbucket_provider.get_owned_repositories(username)
         category_lower = category.lower()
@@ -304,7 +303,7 @@ def bitbucket_username_category_owned(request,username,category):
             if not repository.private:
                 RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned)
         RepositoryCategory.objects.get_or_create(name = category)
-        repository_user.watched = len(owned)
+        repository_user.public_repos = len(owned)
         repository_user.save()
         watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
     # Get repository events

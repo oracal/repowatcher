@@ -1,4 +1,4 @@
-ngo==1.4
+Django==1.4
 amqplib==1.0.2
 anyjson==0.3.1
 argparse==1.2.1

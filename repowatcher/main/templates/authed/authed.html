@@ -27,7 +27,7 @@
 						{% endif %}
 					</ul>
 				{% endblock %}
-				
+
 {% block breadcrumbs %}
 <div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if user.is_authenticated and social_auth.github %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username social_auth.github.extra_data.username %}">{{social_auth.github.extra_data.username|lower}}</a>{% endif %}{% if user.is_authenticated and social_auth.github and social_auth.bitbucket %} <span style = "color:white;">/</span> {% endif %}{% if user.is_authenticated and social_auth.bitbucket %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username social_auth.bitbucket.extra_data.username %}">{{social_auth.bitbucket.extra_data.username|lower}}</a>{% endif %}</div>
 {% endblock %}
@@ -40,7 +40,7 @@
 
 <div class = "container">
 <br></br>
-		
+
 <div id="user" class="row">
 <div class = "span4">
 
@@ -89,7 +89,7 @@
 </div>
 {% endif %}
 {% endif %}
-		
+
 		<div id="user">
 <div>
 			<table id="user_description" class="table table-striped table-bordered">
@@ -182,17 +182,22 @@
 						<td>Bitbucket Public Repositories</td><td>{{bitbucket_repository_user.public_repos}} <a href="{% url bitbucket_username_owned bitbucket_repository_user.login %}">View →</a></td>
 					</tr>
 					{% endif %}
-					{% if github_repository_user.watched != None and bitbucket_repository_user.watched != None %}
+					{% if github_repository_user.starred != None and bitbucket_repository_user.starred != None %}
 					<tr>
-						<td>Github/Bitbucket Watched Repositories</td><td><a href="{% url github_username_watched github_repository_user.login %}">{{github_repository_user.watched}}</a> / <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">{{bitbucket_repository_user.watched}}</a> <a href="{% url authed_watched %}">View →</a></td>
+                        <td>Github/Bitbucket Starred Repositories</td><td><a href="{% url github_username_starred github_repository_user.login %}">{{github_repository_user.starred}}</a> / <a href="{% url bitbucket_username_starred bitbucket_repository_user.login %}">{{bitbucket_repository_user.starred}}</a> <a href="{% url authed_starred %}">View →</a></td>
 					</tr>
-					{% elif github_repository_user.watched != None %}
+					{% elif github_repository_user.starred != None %}
+					<tr>
+						<td>Github Starred Repositories</td><td>{{github_repository_user.starred}} <a href="{% url github_username_starred github_repository_user.login %}">View →</a></td>
+					</tr>
+					{% elif bitbucket_repository_user.starred != None %}
+					<tr>
+						<td>Bitbucket Starred Repositories</td><td>{{bitbucket_repository_user.starred}} <a href="{% url bitbucket_username_starred bitbucket_repository_user.login %}">View →</a></td>
+					</tr>
+					{% endif %}
+					{% if github_repository_user.watched != None %}
 					<tr>
 						<td>Github Watched Repositories</td><td>{{github_repository_user.watched}} <a href="{% url github_username_watched github_repository_user.login %}">View →</a></td>
-					</tr>
-					{% elif bitbucket_repository_user.watched != None %}
-					<tr>
-						<td>Bitbucket Watched Repositories</td><td>{{bitbucket_repository_user.watched}} <a href="{% url bitbucket_username_watched bitbucket_repository_user.login %}">View →</a></td>
 					</tr>
 					{% endif %}
 					{% comment %}
@@ -216,30 +221,30 @@
 		</div>
 		</div>
 		</div>
-		
+
 		<div class="span8">
-		
+
 		<table class="table table-condensed">
-		
+
 		<tbody>
-		
-		
+
+
 		{% for event in user_events %}
-		
+
 		{% if event.host == 'github' %}
-		
+
 		{% include "github_events.html" %}
-		
+
 		{% elif event.host == 'bitbucket' %}
-		
+
 		{% include "bitbucket_events.html" %}
-		
+
 		{% endif %}
-		
+
 		{% endfor %}
-		
+
 		</tbody>
-		
+
 		</table>
 		</div>
 

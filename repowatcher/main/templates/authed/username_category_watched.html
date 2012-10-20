@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{# url github_username_owned github_username %}">owned</a>{% else %}<a href = "{% url github_username_watched github_username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span>{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href = "{% url bitbucket_username_watched bitbucket_username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span>{% endif %}</div>
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{# url github_username_owned github_username %}">owned</a>{% else %}<a href = "{% url github_username_watched github_username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span>{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href = "{% url bitbucket_username_starred bitbucket_username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span>{% endif %}</div>
 {% endblock %}
 
 {% block content %}
@@ -15,12 +15,12 @@
         </style>
 
 	<div class="container">
-	
+
 		<br></br>
-		
+
 		<div id="repositories_list" class="row">
-		
-		
+
+
 		<div class="span3">
 			<table id="repositories" class="table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
 				<thead>
@@ -43,30 +43,30 @@
 				</tbody>
 			</table>
 		</div>
-		
+
 		<div class="span8">
-		
+
 		<table class="table table-condensed">
-		
+
 		<tbody>
-		
-		
+
+
 		{% for event in repo_events %}
-		
+
 		{% if event.host == 'github' %}
-		
+
 		{% include "github_events.html" %}
-		
+
 		{% elif event.host == 'bitbucket' %}
-		
+
 		{% include "bitbucket_events.html" %}
-		
+
 		{% endif %}
-		
+
 		{% endfor %}
-		
+
 		</tbody>
-		
+
 		</table>
 		</div>
 		</div>
@@ -74,10 +74,10 @@
 
 	</div>
 	<!-- /container -->
-	
-	
-	
-	
+
+
+
+
 		{% endblock %}
 
 
@@ -90,7 +90,7 @@
 	<script type="text/javascript">
 	$(function(){
 	$("span.timeago").timeago();
-	
+
 	  $(".connectedSortable").sortable({
       helper: function(e, tr)
       {

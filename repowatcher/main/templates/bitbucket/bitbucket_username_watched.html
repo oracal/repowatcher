@@ -1,11 +1,11 @@
 {% extends "header.html" %}
 
 {% block title %}
-<title>repowatcher : bitbucket - {{username|lower}} - {% if owned %}owned{% else %}watched{% endif %}</title>
+<title>repowatcher : bitbucket - {{username|lower}} - {% if owned %}owned{% else %}starred{% endif %}</title>
 {% endblock %}
 
 {% block breadcrumbs %}
-<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<span style = "color:white;">owned</span>{% else %}<span style = "color:white;">watched</span>{% endif %}</div>
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<span style = "color:white;">owned</span>{% else %}<span style = "color:white;">starred</span>{% endif %}</div>
 {% endblock %}
 
 {% block content %}
@@ -38,13 +38,13 @@ height:35px;
 				</ul>
 			</div>
 		</div>
-		
+
 		{% endif %}
 
 	{% endif %}
-	
+
 		<br></br>
-		
+
 		<div id="repositories_list" class="row">
 
 			{% for category,value in repositories_by_language %}
@@ -55,7 +55,7 @@ height:35px;
 							{% if owned %}
 							<th><a href ="{% url bitbucket_username_category_owned username category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% else %}
-							<th><a href ="{% url bitbucket_username_category_watched username category|urlencode:"/+:-" %}">{{category}}</a></th>
+							<th><a href ="{% url bitbucket_username_category_starred username category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% endif %}
 						</tr>
 					</thead>
@@ -104,7 +104,7 @@ height:35px;
 				{% if owned %}
 				<a id = "update" href="{% url bitbucket_username_owned_update username %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id = "update" href="{% url bitbucket_username_watched_update username %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id = "update" href="{% url bitbucket_username_starred_update username %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
 			</div>
 		</div>
@@ -121,11 +121,11 @@ height:35px;
 				{% if owned %}
 				<a id = "refresh" href="{% url bitbucket_username_owned_refresh username %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id = "refresh" href="{% url bitbucket_username_watched_refresh username %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id = "refresh" href="{% url bitbucket_username_starred_refresh username %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
 			</div>
 		</div>
-		
+
 				<div class="modal hide fade" id="addCategoryModal">
 			<div class="modal-header">
 				<a class="close" data-dismiss="modal">×</a>
@@ -148,7 +148,7 @@ height:35px;
 
 	</div>
 	<!-- /container -->
-	
+
 	{% endblock %}
 
 
@@ -158,12 +158,12 @@ height:35px;
 	<script src="/media/js/jquery-ui.min.js"></script>
 	<script src="/media/js/jquery.masonry.min.js"></script>
 	<script type="text/javascript">
-	
+
 $(function(){
-	
+
 	{% if user.is_authenticated and social_auth.bitbucket %}
 	{% if social_auth.bitbucket.extra_data.username == username %}
-	
+
 	var bookmarkedExists = false;
 	 $('table').each(function() {
 		 var th = $("th:first",$(this));
@@ -179,13 +179,13 @@ $(function(){
 			$('<div>').attr('class','span3').append(
 					$('<table>').attr('class',"repositories table table-striped table-bordered").append(
 							$('<thead>').append(
-							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url bitbucket_username_category_owned username "bookmarked" %}{% else %}{% url bitbucket_username_category_watched username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
+							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url bitbucket_username_category_owned username "bookmarked" %}{% else %}{% url bitbucket_username_category_starred username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
 									$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>"))))));
   }
-  
+
   {% endif %}
   {% endif %}
-  
+
   var draggedFrom2;
   $(".connectedSortable")
   function sortRepo(selector){
@@ -207,44 +207,44 @@ $(function(){
 
     	  over:function(event,ui)
     		  {
-    			  
-    		  
+
+
     		  /*$('.posChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top - ui.item.height();
 				  $(this).offset(offset);
 				  $(this).removeClass('posChanged');[\w+-]
     		  });
-    		  
+
     		  $('.negChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top + ui.item.height();
 				  $(this).offset(offset);
 				  $(this).removeClass('negChanged');
     		  });*/
-    		  
-    		  
-    		  
+
+
+
     		  /*$('.smallPosChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top - 17;
 				  $(this).offset(offset);
 				  $(this).removeClass('smallPosChanged');
     		  });
-    		  
+
     		  $('.smallNegChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top + 17;
 				  $(this).offset(offset);
 				  $(this).removeClass('smallNegChanged');
     		  });*/
-    		  
+
     		  if (draggedFrom2 == null){draggedFrom2=ui.sender.closest('div')}
     		  var draggedFrom = ui.sender.closest('div');
-    		  
+
     		  var smallPosChanged = false;
     		  var smallNegChanged = false;
-    		  
+
     		  if (draggedFrom2.find("tr").length == 1){
     			  smallPosChanged = true;
     			  draggedFrom2.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
@@ -253,22 +253,22 @@ $(function(){
     			  smallPosChanged = true;
     			  draggedFrom.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
   			  }
-    		  
-    		  
+
+
     		  var draggedOn = ui.placeholder.closest('div');
     		  draggedOn.find('td').each(function(){
-    			  
+
  					if ($(this).text() =="")
 						{
 						$(this).parent('tr').remove();
 						smallNegChanged = true;
 						}
-    			  
+
     		  });
-    		  
+
     		  var left = draggedOn.offset().left;
     		  draggedOn.nextAll('div').each(function(){
-    			
+
     			  if ($(this).offset().left == left){
     				  var offset = $(this).offset();
     				  offset.top = offset.top + ui.helper.height();
@@ -278,14 +278,14 @@ $(function(){
     					  //$(this).addClass('smallNegChanged')
     				  }
     				  $(this).offset(offset);
-    				  
+
     			  }
-    			  
+
     		  });
-    		  
+
     		  var left = draggedFrom2.offset().left;
     		  draggedFrom2.nextAll('div').each(function(){
-    			
+
     			  if ($(this).offset().left == left){
     				  var offset = $(this).offset();
     				  offset.top = offset.top - ui.helper.height();
@@ -295,26 +295,26 @@ $(function(){
     					  //$(this).addClass('smallPosChanged')
     				  }
     				  $(this).offset(offset);
-    				  
+
     			  }})
     			  draggedFrom2=draggedOn;
 
     		  },
-    		  
-    		  
+
+
         	  receive:function(event,ui)
     		  {
     		  if(ui.sender){
-    			  
+
     			  if (ui.sender.children("tr").length == 0){
       				  ui.sender.append($("<tr>").addClass('dragDisabled').append($("<td>")));
       			  }
-    				
+
     		  }
 
     		  },
     		  stop:function(event,ui){
-    			  
+
    			  ui.item.parent('tbody').find('td').each(function(){
    					if ($(this).text() =="")
    						{
@@ -324,14 +324,14 @@ $(function(){
   			if(ui.item.parent('tbody').children("tr").length == 0){
   				ui.item.parent('tbody').append($("<tr>").attr('style',"cursor:move;").append($("<td>")));
   			}
-  			
+
     			  /*$('.negChanged').each(function(){
     				  $(this).removeClass('negChanged')
     			  });
     			  $('.posChanged').each(function(){
     				  $(this).removeClass('posChanged')
     			  });
-    				  
+
     			  $('.smallNegChanged').each(function(){
     				  $(this).removeClass('smallNegChanged')
     			  });
@@ -340,22 +340,22 @@ $(function(){
     			  });*/
     			  draggedFrom2 = null;
       			  $('#repositories_list').masonry({ itemSelector : '.span3'});
-      			  
+
     		  },
-    		  
- 
+
+
    connectWith: ".connectedSortable",
    cancel: ".dragDisabled"
   }).disableSelection();
   }
-  
-  
+
+
  sortRepo($(".connectedSortable"));
- 
+
 	  $('#repositories_list').masonry({
 	    itemSelector : '.span3'
 	  });
-	  
+
 		{% if user.is_authenticated and social_auth.bitbucket %}
 		{% if social_auth.bitbucket.extra_data.username == username %}
   function serialize(){
@@ -371,7 +371,7 @@ $(function(){
           }
           if(result[category]){
         	  result[category] = result[category].concat(list)
-        	  
+
           }
           else{
       result[category] = list;
@@ -379,14 +379,14 @@ $(function(){
   });
   return result
   };
-  
+
   $('#save').click(function(){
 	  $.ajax({
   type: 'POST',
   {% if owned %}
   url: '{% url bitbucket_username_owned_save username %}',
   {% else %}
-  url: '{% url bitbucket_username_watched_save username %}',
+  url: '{% url bitbucket_username_starred_save username %}',
   {% endif %}
   data: {
     order: JSON.stringify(serialize()),
@@ -398,7 +398,7 @@ $(function(){
   $('#refresh').click(function(){
   $('#refreshModal').modal('hide');
   });
-  
+
   $('#update').click(function(){
 	  $('#updateModal').modal('hide');
 	  });
@@ -410,16 +410,16 @@ $(function(){
 	  var categoryDiv = $('<div>').attr('class','span3').append(
 				$('<table>').attr('class',"repositories table table-striped table-bordered").append(
 						$('<thead>').append(
-						$('<tr>').append($('<th>').append($('<a>').attr('href','bitbucket/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/watched'{% endif %}).css('color','purple').text(category))))).append(
+						$('<tr>').append($('<th>').append($('<a>').attr('href','bitbucket/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/starred'{% endif %}).css('color','purple').text(category))))).append(
 								$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>")))));
-	  
+
 	  $("#repositories_list").append(categoryDiv).masonry( 'appended', categoryDiv );
 	  sortRepo($(categoryDiv).find('tbody'));
 	  });
-  
-  
+
+
   $('#addCategoryModal').on('shown', function () {
-	  
+
 	  $("#addCategoryName").focus();
 	  $("#addCategoryName").keyup(function(event){
 		    if(event.keyCode == 13){
@@ -428,9 +428,9 @@ $(function(){
 		});
 })
   {% endif %}
-  
+
   {% endif %}
-});  
+});
   </script>
-  
+
   {% endblock %}

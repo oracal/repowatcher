@@ -45,8 +45,11 @@ class Repository(models.Model):
     def save(self, *args, **kwargs):
         self.slug = self.owner.lower() + '/' + self.name.lower()
         self.host_slug = self.host+'/'+self.slug
-        if (self.html_url == None or self.html_url =='') and self.host =='bitbucket':
-            self.html_url = 'https://bitbucket.org/%s/%s' % (self.owner,self.name)
+        if self.html_url == None or self.html_url =='':
+            if self.host =='bitbucket':
+                self.html_url = 'https://bitbucket.org/%s/%s' % (self.owner,self.name)
+            if self.host =='github':
+                self.html_url = 'https://github.com/%s/%s' % (self.owner,self.name)
 
         super(Repository, self).save(*args, **kwargs)
 
@@ -67,6 +70,7 @@ class RepositoryUser(models.Model):
     extra_data = JSONField(null = True)
     last_modified = DateTimeField(auto_now=True)
     repositories = models.ManyToManyField(Repository, through='RepositoryUserRepositoryLink')
+    starred = PositiveIntegerField(null = True)
     watched = PositiveIntegerField(null = True)
     host = CharField(max_length=100,choices=HOST_CHOICES,db_index = True)
 
@@ -82,11 +86,12 @@ class RepositoryUserRepositoryLink(models.Model):
     user = ForeignKey(RepositoryUser)
     repository = ForeignKey(Repository)
     owned = BooleanField(default = False)
+    starred = BooleanField(default = True)
     last_modified = DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['repository__language', '-repository__watchers']
-        unique_together = ("user", "repository", "owned")
+        unique_together = ("user", "repository", "owned", "starred")
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
@@ -99,12 +104,12 @@ class UserRepositoryLink(models.Model):
     order = PositiveIntegerField()
     repository_category = ForeignKey(RepositoryCategory)
     owned = BooleanField(default = False)
-    starred = BooleanField(default = False)
+    starred = BooleanField(default = True)
     last_modified = DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['repository_category__name','order']
-        unique_together = ("user", "repository", 'owned')
+        unique_together = ("user", "repository", 'owned', "starred")
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

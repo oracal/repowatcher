@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url github_username_owned github_username %}">owned</a>{% else %}<a href="{% url github_username_watched github_username %}">watched</a>{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href ="{% url bitbucket_username_watched github_username %}">watched</a>{% endif %}{% endif %}</div>
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url github_username_owned github_username %}">owned</a>{% else %}<a href="{% url github_username_watched github_username %}">watched</a>{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href ="{% url bitbucket_username_starred github_username %}">watched</a>{% endif %}{% endif %}</div>
 {% endblock %}
 
 {% block content %}
@@ -19,9 +19,9 @@ height:35px;
 </style>
 
 	<div class="container">
-	
+
 		<br></br>
-		
+
 		<div id="repositories_list" class="row">
 
 			{% for category,value in repositories_by_language %}
@@ -44,8 +44,8 @@ height:35px;
 							</td>
 						</tr>
 						{% elif repo.host == 'bitbucket' %}
-						
-						
+
+
 						<tr>
 							<td style = "cursor:move;overflow:hidden;"><a href="{% url repowatcher.main.views.bitbucket_repo repo.owner repo.name %}">{{ repo.owner }}/{{ repo.name }}</a>
 							</td>
@@ -61,7 +61,7 @@ height:35px;
 
 	</div>
 	<!-- /container -->
-	
+
 	{% endblock %}
 
 
@@ -71,12 +71,12 @@ height:35px;
 	<script src="/media/js/jquery-ui.min.js"></script>
 	<script src="/media/js/jquery.masonry.min.js"></script>
 	<script type="text/javascript">
-	
+
 $(function(){
 	{% comment %}
 	{% if user.is_authenticated %}
 	{% if social_auth.github.extra_data.username == username %}
-	
+
 	var bookmarkedExists = false;
 	 $('table').each(function() {
 		 var th = $("th:first",$(this));
@@ -95,11 +95,11 @@ $(function(){
 							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url github_username_category_owned username "bookmarked" %}{% else %}{% url github_username_category_watched username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
 									$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>"))))));
   }
-  
+
   {% endif %}
   {% endif %}
   {% endcomment %}
-  
+
   var draggedFrom2;
   $(".connectedSortable")
   function sortRepo(selector){
@@ -121,44 +121,44 @@ $(function(){
 
     	  over:function(event,ui)
     		  {
-    			  
-    		  
+
+
     		  /*$('.posChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top - ui.item.height();
 				  $(this).offset(offset);
 				  $(this).removeClass('posChanged');[\w+-]
     		  });
-    		  
+
     		  $('.negChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top + ui.item.height();
 				  $(this).offset(offset);
 				  $(this).removeClass('negChanged');
     		  });*/
-    		  
-    		  
-    		  
+
+
+
     		  /*$('.smallPosChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top - 17;
 				  $(this).offset(offset);
 				  $(this).removeClass('smallPosChanged');
     		  });
-    		  
+
     		  $('.smallNegChanged').each(function(){
     			  var offset = $(this).offset();
 				  offset.top = offset.top + 17;
 				  $(this).offset(offset);
 				  $(this).removeClass('smallNegChanged');
     		  });*/
-    		  
+
     		  if (draggedFrom2 == null){draggedFrom2=ui.sender.closest('div')}
     		  var draggedFrom = ui.sender.closest('div');
-    		  
+
     		  var smallPosChanged = false;
     		  var smallNegChanged = false;
-    		  
+
     		  if (draggedFrom2.find("tr").length == 1){
     			  smallPosChanged = true;
     			  draggedFrom2.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
@@ -167,22 +167,22 @@ $(function(){
     			  smallPosChanged = true;
     			  draggedFrom.find('tbody').append($("<tr>").addClass('dragDisabled').append($("<td>")));
   			  }
-    		  
-    		  
+
+
     		  var draggedOn = ui.placeholder.closest('div');
     		  draggedOn.find('td').each(function(){
-    			  
+
  					if ($(this).text() =="")
 						{
 						$(this).parent('tr').remove();
 						smallNegChanged = true;
 						}
-    			  
+
     		  });
-    		  
+
     		  var left = draggedOn.offset().left;
     		  draggedOn.nextAll('div').each(function(){
-    			
+
     			  if ($(this).offset().left == left){
     				  var offset = $(this).offset();
     				  offset.top = offset.top + ui.helper.height();
@@ -192,14 +192,14 @@ $(function(){
     					  //$(this).addClass('smallNegChanged')
     				  }
     				  $(this).offset(offset);
-    				  
+
     			  }
-    			  
+
     		  });
-    		  
+
     		  var left = draggedFrom2.offset().left;
     		  draggedFrom2.nextAll('div').each(function(){
-    			
+
     			  if ($(this).offset().left == left){
     				  var offset = $(this).offset();
     				  offset.top = offset.top - ui.helper.height();
@@ -209,26 +209,26 @@ $(function(){
     					  //$(this).addClass('smallPosChanged')
     				  }
     				  $(this).offset(offset);
-    				  
+
     			  }})
     			  draggedFrom2=draggedOn;
 
     		  },
-    		  
-    		  
+
+
         	  receive:function(event,ui)
     		  {
     		  if(ui.sender){
-    			  
+
     			  if (ui.sender.children("tr").length == 0){
       				  ui.sender.append($("<tr>").addClass('dragDisabled').append($("<td>")));
       			  }
-    				
+
     		  }
 
     		  },
     		  stop:function(event,ui){
-    			  
+
    			  ui.item.parent('tbody').find('td').each(function(){
    					if ($(this).text() =="")
    						{
@@ -238,14 +238,14 @@ $(function(){
   			if(ui.item.parent('tbody').children("tr").length == 0){
   				ui.item.parent('tbody').append($("<tr>").attr('style',"cursor:move;").append($("<td>")));
   			}
-  			
+
     			  /*$('.negChanged').each(function(){
     				  $(this).removeClass('negChanged')
     			  });
     			  $('.posChanged').each(function(){
     				  $(this).removeClass('posChanged')
     			  });
-    				  
+
     			  $('.smallNegChanged').each(function(){
     				  $(this).removeClass('smallNegChanged')
     			  });
@@ -254,25 +254,25 @@ $(function(){
     			  });*/
     			  draggedFrom2 = null;
       			  $('#repositories_list').masonry({ itemSelector : '.span3'});
-      			  
+
     		  },
-    		  
- 
+
+
    connectWith: ".connectedSortable",
    cancel: ".dragDisabled"
   }).disableSelection();
   }
-  
-  
+
+
  sortRepo($(".connectedSortable"));
- 
+
 	  $('#repositories_list').masonry({
 	    itemSelector : '.span3'
 	  });
 	  {% comment %}
 		{% if user.is_authenticated and social_auth.github %}
 		{% if social_auth.github.extra_data.username == username %}
-	
+
   function serialize(){
   var result = {};
   var list;
@@ -286,7 +286,7 @@ $(function(){
           }
           if(result[category]){
         	  result[category] = result[category].concat(list)
-        	  
+
           }
           else{
       result[category] = list;
@@ -294,7 +294,7 @@ $(function(){
   });
   return result
   };
-  
+
   $('#save').click(function(){
 	  $.ajax({
   type: 'POST',
@@ -313,7 +313,7 @@ $(function(){
   $('#refresh').click(function(){
   $('#refreshModal').modal('hide');
   });
-  
+
   $('#update').click(function(){
 	  $('#updateModal').modal('hide');
 	  });
@@ -328,14 +328,14 @@ $(function(){
 						$('<thead>').append(
 						$('<tr>').append($('<th>').append($('<a>').attr('href','github/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/watched'{% endif %}).css('color','purple').text(category))))).append(
 								$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>")))));
-	  
+
 	  $("#repositories_list").append(categoryDiv).masonry( 'appended', categoryDiv );
 	  sortRepo($(categoryDiv).find('tbody'));
 	  });
-  
-  
+
+
   $('#addCategoryModal').on('shown', function () {
-	  
+
 	  $("#addCategoryName").focus();
 	  $("#addCategoryName").keyup(function(event){
 		    if(event.keyCode == 13){
@@ -344,10 +344,10 @@ $(function(){
 		});
 })
   {% endif %}
-  
+
   {% endif %}
   {% endcomment %}
-});  
+});
   </script>
-  
+
   {% endblock %}

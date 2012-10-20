@@ -76,6 +76,28 @@ def github_username(request, username):
 
             repositories.append(repository)
     repository_user.starred = len(repositories)
+
+    # Get repository information
+    repositories, _ = github_provider.retrieve_watched_repositories_list(username, starred = False)
+    if len(repositories) == 0:
+        for repo in github_provider.get_watched_repositories(username, starred = False):
+            update = False
+            try:
+                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
+            except ObjectDoesNotExist:
+                update = True
+                repository = Repository()
+            if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
+                repository = github_provider.create_or_update_repository_details(repo, repository)
+                if not repository.private:
+                    repository.save()
+                repository = repository
+                RepositoryCategory.objects.get_or_create(name = repository.language)
+            if not repository.private:
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = False)
+
+            repositories.append(repository)
+    repository_user.watched = len(repositories)
     repository_user.save()
 
     return render_to_response('github_username.html', {'user_events':user_events,'repository_user':repository_user},context_instance=RequestContext(request))
@@ -116,7 +138,7 @@ def github_username_watched(request,username,owned=False, starred = True):
         for category in repositories_by_language.keys():
             RepositoryCategory.objects.get_or_create(name = category)
             repositories_by_language[category].sort(key=lambda x: x.watchers, reverse = True)
-    return render_to_response('github_username_watched.html', {'username':username,'repositories_by_language':sorted(dict(repositories_by_language).iteritems(),key=lambda (k, v): len(v),reverse = True),'owned':owned},context_instance=RequestContext(request))
+    return render_to_response('github_username_watched.html', {'username':username,'repositories_by_language':sorted(dict(repositories_by_language).iteritems(),key=lambda (k, v): len(v),reverse = True),'owned':owned,"starred":starred},context_instance=RequestContext(request))
 
 @ajax_required
 @never_cache
@@ -154,6 +176,8 @@ def github_username_watched_update(request,username,owned = False, starred = Tru
             repository_user.save()
             if owned:
                 return HttpResponseRedirect(reverse('github_username_owned', kwargs={'username': username}))
+            elif starred:
+                return HttpResponseRedirect(reverse('github_username_starred', kwargs={'username': username}))
             else:
                 return HttpResponseRedirect(reverse('github_username_watched', kwargs={'username': username}))
     except ObjectDoesNotExist:
@@ -179,6 +203,8 @@ def github_username_watched_refresh(request,username,owned = False, starred = Tr
             links.delete()
             if owned:
                 return HttpResponseRedirect(reverse('github_username_owned', kwargs={'username': username}))
+            elif starred:
+                return HttpResponseRedirect(reverse('github_username_starred', kwargs={'username': username}))
             else:
                 return HttpResponseRedirect(reverse('github_username_watched', kwargs={'username': username}))
     except ObjectDoesNotExist:
@@ -219,7 +245,10 @@ def github_username_category_watched(request,username,category,owned = False, st
                 RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned, starred = starred)
         RepositoryCategory.objects.get_or_create(name = category.lower())
         if not owned:
-            repository_user.starred = count
+            if starred:
+                repository_user.starred = count
+            else:
+                repository_user.watched = count
         repository_user.save()
         watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
 
@@ -249,7 +278,7 @@ def github_username_category_watched(request,username,category,owned = False, st
 #        repo_events = repo_events[:30]
 #    else:
     repo_events = github_provider.get_repositories_events(watched_filtered)
-    return render_to_response('github_username_category_watched.html', {'username': username, 'watched':watched_filtered, 'category':category, 'repo_events':repo_events,'owned':owned},context_instance=RequestContext(request))
+    return render_to_response('github_username_category_watched.html', {'username': username, 'watched':watched_filtered, 'category':category, 'repo_events':repo_events,'owned':owned,"starred":starred},context_instance=RequestContext(request))
 
 @ajax_required
 @never_cache
@@ -293,6 +322,8 @@ def github_username_category_watched_update(request,username,category, owned = F
             repository_user.save()
             if owned:
                 return HttpResponseRedirect(reverse('github_username_category_owned', kwargs={'username': username,'category':category}))
+            elif starred:
+                return HttpResponseRedirect(reverse('github_username_category_starred', kwargs={'username': username,'category':category}))
             else:
                 return HttpResponseRedirect(reverse('github_username_category_watched', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
@@ -317,6 +348,8 @@ def github_username_category_watched_refresh(request,username,category,owned = F
             username = user.social_auth.get(provider='github').extra_data['username']
             if owned:
                 return HttpResponseRedirect(reverse('github_username_category_owned', kwargs={'username': username,'category':category}))
+            elif starred:
+                return HttpResponseRedirect(reverse('github_username_category_starred', kwargs={'username': username,'category':category}))
             else:
                 return HttpResponseRedirect(reverse('github_username_category_watched', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
@@ -331,7 +364,8 @@ def github_repo(request, owner, repo):
     user = request.user
     github_provider = GithubProvider(user)
     # check to see if the repo is being watched by the authed user or not
-    watched = github_provider.get_watched_status(owner, repo)
+    watched = github_provider.get_watched_status(owner, repo, starred = False)
+    starred = github_provider.get_watched_status(owner, repo)
     update = False
     try:
         repository = github_provider.retrieve_repository_details(owner, repo)
@@ -344,7 +378,7 @@ def github_repo(request, owner, repo):
         if not repository.private:
             repository.save()
     repo_events = github_provider.get_repository_events(owner, repo)
-    return render_to_response('github_repo.html', {'repository': repository, 'repo_events': repo_events, 'watched':watched}, RequestContext(request))
+    return render_to_response('github_repo.html', {'repository': repository, 'repo_events': repo_events, 'watched':watched, 'starred':starred}, RequestContext(request))
 
 @ajax_required
 @never_cache

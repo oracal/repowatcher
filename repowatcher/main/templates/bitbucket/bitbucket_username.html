@@ -16,12 +16,12 @@
         </style>
 
 	<div class="container">
-	
+
 		<br></br>
-		
+
 		<div id="user" class="row">
-		
-		
+
+
 		<div class="span4">
 			<table id="user_description" class="table table-striped table-bordered">
 				<thead>
@@ -65,48 +65,48 @@
 						<td>Number of Public Repositories</td><td>{{repository_user.public_repos}} <a href="{% url bitbucket_username_owned repository_user.login %}">View →</a></td>
 					</tr>
 					{% endif %}
-					{% if repository_user.watched != None %}
+					{% if repository_user.starred != None %}
 					<tr>
-						<td>Number of Watched Repositories</td><td>{{repository_user.watched}} <a href="{% url bitbucket_username_watched repository_user.login %}">View →</a></td>
+						<td>Number of Starred Repositories</td><td>{{repository_user.starred}}</a></td>
 					</tr>
 					{% endif %}
-					{% comment %}
+                    {% comment %}
 					{% for key,value in repository_user.extra_data.items %}
 					<tr>
 						<td>{{key|title}}</td><td>{{value}}</td>
 					</tr>
-					{% endfor %}
-					{% endcomment %}
+                    {% endfor %}
+                    {% endcomment %}
 
 				</tbody>
 			</table>
 		</div>
-		
+
 		<div class="span8">
-		
+
 		<table class="table table-condensed">
-		
+
 		<tbody>
-		
-		
+
+
 		{% for event in user_events %}
-		
+
 		{% include "bitbucket_events.html" %}
-		
+
 		{% endfor %}
-		
+
 		</tbody>
-		
+
 		</table>
 		</div>
 		</div>
-		
+
 	</div>
 	<!-- /container -->
-	
-	
-	
-	
+
+
+
+
 		{% endblock %}
 
 

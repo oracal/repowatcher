@@ -117,7 +117,10 @@ class ProviderBase(object):
                 if repository_links_size==0 or (datetime.now() - oldest_modification) > timedelta(days = 1):
                     repository_links.delete()
                 else:
-                    repository_user.watched = repository_links_size
+                    if starred:
+                        repository_user.starred = repository_links_size
+                    else:
+                        repository_user.watched = repository_links_size
                     for repository_link in repository_links:
                         repositories.append(repository_link.repository)
         except ObjectDoesNotExist:

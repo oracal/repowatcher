@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitbucketProvider(ProviderBase):
-    
+
     def __init__(self, user):
         self.user = user
         self.tokens = None
@@ -37,7 +37,7 @@ class BitbucketProvider(ProviderBase):
         except Exception:
             user_dict = {}
         return user_dict
-    
+
     def create_or_update_user_details(self, user_dict, repository_user = None):
         extra_data = {}
         if repository_user is None:
@@ -50,7 +50,7 @@ class BitbucketProvider(ProviderBase):
             elif 'last_name' in user_dict and user_dict['last_name']!='':
                 repository_user.name = user_dict['last_name']
         for key,value in user_dict.iteritems():
-                    
+
             if key == 'username':
                 repository_user.login = value
             elif key =='first_name':
@@ -62,17 +62,18 @@ class BitbucketProvider(ProviderBase):
                     extra_data[key] = value.__str__()
                 else:
                     extra_data[key] = value
-                    
+
         repository_user.extra_data = json.dumps(extra_data)
         repository_user.host = self.host
         return repository_user
-    
+
     def retrieve_user_details(self, username):
         return RepositoryUser.objects.get(slug=self.host+'/'+username.lower())
 
     def get_user_events(self, username):
         try:
             user_events = self.slumber.users(username.lower()).events.get()['events']
+            logger.debug("I did not throw an exception")
         except Exception:
             user_events = []
         return user_events
@@ -84,7 +85,7 @@ class BitbucketProvider(ProviderBase):
         except Exception:
             raise Http404
         return repository_dict
-  
+
     def create_or_update_repository_details(self, repository_dict, repository = None):
         extra_data = {}
         if repository is None:
@@ -100,7 +101,7 @@ class BitbucketProvider(ProviderBase):
                 setattr(repository,key_map[key],value)
             else:
                 extra_data[key] = value
-                    
+
         repository.extra_data = json.dumps(extra_data)
         if repository.language == "" or repository.language == None:
             repository.language = "other"
@@ -112,7 +113,7 @@ class BitbucketProvider(ProviderBase):
         host_slug = ('/'.join((self.host,owner,repository))).lower()
         repo = Repository.objects.get(host_slug= host_slug)
         return repo
-    
+
     def get_repository_events(self, owner, repository):
         slug = '/'.join((owner.lower(), repository.lower()))
         try:
@@ -148,9 +149,9 @@ class BitbucketProvider(ProviderBase):
                 repositories = self.slumber.user.follows.get()
             except Exception:
                 pass
-        
+
         return repositories
-        
+
     def get_watched_repositories(self, username):
         return self.get_repositories(username = username,owned = False)
 

@@ -58,7 +58,7 @@ def typeahead(request, value = None):
         users = Repository.objects.filter(private=False).filter(owner__contains=value).values('owner').distinct()
     typeahead_list = []
     for repository in repositories:
-        typeahead_list.append(repository['name']) 
+        typeahead_list.append(repository['name'])
     for user in users:
         typeahead_list.append(user['owner'])
     return HttpResponse(json.dumps(typeahead_list), mimetype="application/json")
@@ -108,7 +108,6 @@ def search(request):
                 update = True
                 repository = Repository()
             if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
-                repo['html_url'] = repo.pop('url')
                 repository = github_provider.create_or_update_repository_details(repo, repository)
                 if not repository.private:
                     repository.save()
@@ -142,7 +141,7 @@ def search(request):
         return render_to_response('search.html', {'repositories_by_language':sorted(dict(repositories_by_language).iteritems(),key=lambda (k, v): len(v),reverse = True), 'users':users},context_instance=RequestContext(request))
     else:
         return render_to_response('search.html', {'repositories_by_language':{}, 'users':[]},context_instance=RequestContext(request))
-    
+
 
 @cache_control(max_age=60 * 60 * 24)
 def watched_popular(request):

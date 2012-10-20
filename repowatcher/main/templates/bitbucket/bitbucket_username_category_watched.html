@@ -1,11 +1,11 @@
 {% extends "header.html" %}
 
 {% block title %}
-<title>repowatcher : bitbucket - {{username|lower}} - {% if owned %}owned{% else %}watched{% endif %} - {{category|lower}}</title>
+<title>repowatcher : bitbucket - {{username|lower}} - {% if owned %}owned{% else %}starred{% endif %} - {{category|lower}}</title>
 {% endblock %}
 
 {% block breadcrumbs %}
-<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{% url bitbucket_username_owned username %}">owned</a>{% else %}<a href = "{% url bitbucket_username_watched username %}">watched</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span></div>
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center"><span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username username %}">{{username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href = "{% url bitbucket_username_owned username %}">owned</a>{% else %}<a href = "{% url bitbucket_username_starred username %}">starred</a>{% endif %}<span style = "color:white;"> → {{category|lower}}</span></div>
 {% endblock %}
 
 {% block content %}
@@ -33,12 +33,12 @@
 
 	{% endif %}
 		{% endif %}
-	
+
 		<br></br>
-		
+
 		<div id="repositories_list" class="row">
-		
-		
+
+
 		<div class="span3">
 			<table id="repositories" class="table table-striped table-bordered" style ="overflow:hidden; table-layout:fixed;">
 				<thead>
@@ -56,23 +56,23 @@
 				</tbody>
 			</table>
 		</div>
-		
+
 		<div class="span8">
-		
+
 		<table class="table table-condensed">
-		
+
 		<tbody>
-		
-		
+
+
 		{% for event in repo_events %}
-		
+
 		{% include "bitbucket_events.html" %}
 		{% endfor %}
-		
-		
-		
+
+
+
 		</tbody>
-		
+
 		</table>
 		</div>
 		</div>
@@ -106,7 +106,7 @@
 				{% if owned %}
 				<a id ="update" href="{% url bitbucket_username_category_owned_update username category|urlencode:"/+:-" %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id ="update" href="{% url bitbucket_username_category_watched_update username category|urlencode:"/+:-" %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="update" href="{% url bitbucket_username_category_starred_update username category|urlencode:"/+:-" %}" class="btn btn-primary"><i class="icon-refresh"></i>Update</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
 			</div>
 		</div>
@@ -123,22 +123,22 @@
 				{% if owned %}
 				<a id ="refresh" href="{% url bitbucket_username_category_owned_refresh username category|urlencode:"/+:-" %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% else %}
-				<a id ="refresh" href="{% url bitbucket_username_category_watched_refresh username category|urlencode:"/+:-" %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
+				<a id ="refresh" href="{% url bitbucket_username_category_starred_refresh username category|urlencode:"/+:-" %}" class="btn btn-danger"><i class="icon-trash"></i>Refresh</a> <a href="#" class="btn" data-dismiss="modal">Close</a>
 				{% endif %}
-				
+
 			</div>
 		</div>
-		
+
 		{% endif %}
 		{% endif %}
 
 
 	</div>
 	<!-- /container -->
-	
-	
-	
-	
+
+
+
+
 		{% endblock %}
 
 
@@ -151,7 +151,7 @@
 	<script type="text/javascript">
 	$(function(){
 	$("span.timeago").timeago();
-	
+
 	  $(".connectedSortable").sortable({
       helper: function(e, tr)
       {
@@ -181,14 +181,14 @@
 		  });
 		  return list;
 		  };
-	  
+
 	  $('#save').click(function(){
 		  $.ajax({
 	  type: 'POST',
 	  {% if owned %}
 	  url: '{% url bitbucket_username_category_owned_save username category|urlencode:"/+:-" %}',
 	  {% else %}
-	  url: '{% url bitbucket_username_category_watched_save username category|urlencode:"/+:-" %}',
+	  url: '{% url bitbucket_username_category_starred_save username category|urlencode:"/+:-" %}',
 	  {% endif %}
 	  data: {
 	    order: JSON.stringify(serialize()),
@@ -197,12 +197,12 @@
 	  dataType: 'json'
 	});
 	  });
-	  
-	  
+
+
 	  $('#refresh').click(function(){
 		  $('#refreshModal').modal('hide');
 		  });
-		  
+
 		  $('#update').click(function(){
 			  $('#updateModal').modal('hide');
 			  });
