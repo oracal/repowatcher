@@ -13,10 +13,9 @@ urlpatterns = patterns('repowatcher.main.views',
     url(r'^authed/$', 'authed'),
     url(r'^authed/owned/$', 'authed_owned',{},'authed_owned'),
     url(r'^authed/starred/$', 'authed_watched',{},'authed_starred'),
-    url(r'^authed/watched/$', 'authed_watched',{"starred": False,},'authed_watched'),
     url(r'^authed/logout/$', 'authed_logout',{},'authed_logout'),
 
-    url(r'authed/(?P<category>[^/]+)/watched/$', 'authed_category_watched',{},'authed_category_watched'),
+    url(r'authed/(?P<category>[^/]+)/starred/$', 'authed_category_watched',{},'authed_category_starred'),
     url(r'authed/(?P<category>[^/]+)/owned/$', 'authed_category_owned',{},'authed_category_owned'),
 
     # github public user page
@@ -27,50 +26,50 @@ urlpatterns = patterns('repowatcher.main.views',
     # github public repository page
 
     url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/$', 'github_repo'),
-    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/watch/$', 'github_repo_watch', {"starred":False}, 'github_repo_watch'),
-    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/unwatch/$', 'github_repo_unwatch',{"starred":False}, 'github_repo_unwatch'),
-    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/star/$', 'github_repo_watch', {}, 'github_repo_star'),
-    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/unstar/$', 'github_repo_unwatch', {}, 'github_repo_unstar'),
+    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/watch/$', 'github_repo_watch', {}, 'github_repo_watch'),
+    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/unwatch/$', 'github_repo_unwatch',{}, 'github_repo_unwatch'),
+    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/star/$', 'github_repo_star', {}, 'github_repo_star'),
+    url(r'^github/repo/(?P<owner>[^/]+)/(?P<repo>[^/]+)/unstar/$', 'github_repo_unstar', {}, 'github_repo_unstar'),
 
 
 
     # github watched
 
-    url(r'^github/(?P<username>[^/]+)/watched/$', 'github_username_watched',{"starred":False,},'github_username_watched'),
-    url(r'^github/(?P<username>[^/]+)/watched/save/$', 'github_username_watched_save',{"starred": False,},'github_username_watched_save'),
-    url(r'^github/(?P<username>[^/]+)/watched/update/$', 'github_username_watched_update',{"starred":False,},'github_username_watched_update'),
-    url(r'^github/(?P<username>[^/]+)/watched/refresh/$', 'github_username_watched_refresh',{"starred":False,},'github_username_watched_refresh'),
+    url(r'^github/(?P<username>[^/]+)/watched/$', 'github_username_watched',{"link_type":"watched",},'github_username_watched'),
+    url(r'^github/(?P<username>[^/]+)/watched/save/$', 'github_username_watched_save',{"link_type":"watched",},'github_username_watched_save'),
+    url(r'^github/(?P<username>[^/]+)/watched/update/$', 'github_username_watched_update',{"link_type":"watched",},'github_username_watched_update'),
+    url(r'^github/(?P<username>[^/]+)/watched/refresh/$', 'github_username_watched_refresh',{"link_type":"watched",},'github_username_watched_refresh'),
 
-    url(r'^github/(?P<username>[^/]+)/starred/$', 'github_username_watched',{},'github_username_starred'),
-    url(r'^github/(?P<username>[^/]+)/starred/save/$', 'github_username_watched_save',{},'github_username_starred_save'),
-    url(r'^github/(?P<username>[^/]+)/starred/update/$', 'github_username_watched_update',{},'github_username_starred_update'),
-    url(r'^github/(?P<username>[^/]+)/starred/refresh/$', 'github_username_watched_refresh',{},'github_username_starred_refresh'),
+    url(r'^github/(?P<username>[^/]+)/starred/$', 'github_username_watched',{"link_type":"starred"},'github_username_starred'),
+    url(r'^github/(?P<username>[^/]+)/starred/save/$', 'github_username_watched_save',{"link_type":"starred"},'github_username_starred_save'),
+    url(r'^github/(?P<username>[^/]+)/starred/update/$', 'github_username_watched_update',{"link_type":"starred"},'github_username_starred_update'),
+    url(r'^github/(?P<username>[^/]+)/starred/refresh/$', 'github_username_watched_refresh',{"link_type":"starred"},'github_username_starred_refresh'),
 
     # github owned
 
-    url(r'^github/(?P<username>[^/]+)/owned/$', 'github_username_watched',{'owned': True,},'github_username_owned'),
-    url(r'^github/(?P<username>[^/]+)/owned/save/$', 'github_username_watched_save',{'owned': True,},'github_username_owned_save'),
-    url(r'^github/(?P<username>[^/]+)/owned/update/$', 'github_username_watched_update',{'owned': True,},'github_username_owned_update'),
-    url(r'^github/(?P<username>[^/]+)/owned/refresh/$', 'github_username_watched_refresh',{'owned': True,},'github_username_owned_refresh'),
+    url(r'^github/(?P<username>[^/]+)/owned/$', 'github_username_watched',{"link_type":"owned",},'github_username_owned'),
+    url(r'^github/(?P<username>[^/]+)/owned/save/$', 'github_username_watched_save',{"link_type":"owned",},'github_username_owned_save'),
+    url(r'^github/(?P<username>[^/]+)/owned/update/$', 'github_username_watched_update',{"link_type":"owned",},'github_username_owned_update'),
+    url(r'^github/(?P<username>[^/]+)/owned/refresh/$', 'github_username_watched_refresh',{"link_type":"owned",},'github_username_owned_refresh'),
 
     # github authed individual category watched
 
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/$', 'github_username_category_watched',{"starred": False,},'github_username_category_watched'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/save/$', 'github_username_category_watched_save',{"starred":False},'github_username_category_watched_save'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/update/$', 'github_username_category_watched_update',{"starred": False,},'github_username_category_watched_update'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/refresh/$', 'github_username_category_watched_refresh',{"starred":False,},'github_username_category_watched_refresh'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/$', 'github_username_category_watched',{"link_type":"watched",},'github_username_category_watched'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/save/$', 'github_username_category_watched_save',{"link_type":"watched"},'github_username_category_watched_save'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/update/$', 'github_username_category_watched_update',{"link_type":"watched",},'github_username_category_watched_update'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/refresh/$', 'github_username_category_watched_refresh',{"link_type":"watched",},'github_username_category_watched_refresh'),
 
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/$', 'github_username_category_watched',{},'github_username_category_starred'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/save/$', 'github_username_category_watched_save',{},'github_username_category_starred_save'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/update/$', 'github_username_category_watched_update',{},'github_username_category_starred_update'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/refresh/$', 'github_username_category_watched_refresh',{},'github_username_category_starred_refresh'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/$', 'github_username_category_watched',{"link_type":"starred"},'github_username_category_starred'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/save/$', 'github_username_category_watched_save',{"link_type":"starred"},'github_username_category_starred_save'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/update/$', 'github_username_category_watched_update',{"link_type":"starred"},'github_username_category_starred_update'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/refresh/$', 'github_username_category_watched_refresh',{"link_type":"starred"},'github_username_category_starred_refresh'),
 
     # github authed individual category owned
 
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/$', 'github_username_category_watched',{'owned': True,},'github_username_category_owned'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/save/$', 'github_username_category_watched_save',{'owned': True,},'github_username_category_owned_save'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/update/$', 'github_username_category_watched_update',{'owned': True,},'github_username_category_owned_update'),
-    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/refresh/$', 'github_username_category_watched_refresh',{'owned': True,},'github_username_category_owned_refresh'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/$', 'github_username_category_watched',{"link_type":"owned",},'github_username_category_owned'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/save/$', 'github_username_category_watched_save',{"link_type":"owned",},'github_username_category_owned_save'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/update/$', 'github_username_category_watched_update',{"link_type":"owned",},'github_username_category_owned_update'),
+    url(r'^github/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/refresh/$', 'github_username_category_watched_refresh',{"link_type":"owned",},'github_username_category_owned_refresh'),
 
     # public entry to site
 
@@ -106,30 +105,30 @@ urlpatterns = patterns('repowatcher.main.views',
     # bitbucket watched
 
     url(r'^bitbucket/(?P<username>[^/]+)/starred/$', 'bitbucket_username_watched',{},'bitbucket_username_starred'),
-    url(r'^bitbucket/(?P<username>[^/]+)/starred/save/$', 'bitbucket_username_watched_save',{'owned': False,},'bitbucket_username_starred_save'),
+    url(r'^bitbucket/(?P<username>[^/]+)/starred/save/$', 'bitbucket_username_watched_save',{"link_type":"starred",},'bitbucket_username_starred_save'),
     url(r'^bitbucket/(?P<username>[^/]+)/starred/update/$', 'bitbucket_username_watched_update',{},'bitbucket_username_starred_update'),
-    url(r'^bitbucket/(?P<username>[^/]+)/starred/refresh/$', 'bitbucket_username_watched_refresh',{'owned': False,},'bitbucket_username_starred_refresh'),
+    url(r'^bitbucket/(?P<username>[^/]+)/starred/refresh/$', 'bitbucket_username_watched_refresh',{"link_type":"starred",},'bitbucket_username_starred_refresh'),
 
     # bitbucket owned
 
     url(r'^bitbucket/(?P<username>[^/]+)/owned/$', 'bitbucket_username_owned',{},'bitbucket_username_owned'),
-    url(r'^bitbucket/(?P<username>[^/]+)/owned/save/$', 'bitbucket_username_watched_save',{'owned': True,},'bitbucket_username_owned_save'),
+    url(r'^bitbucket/(?P<username>[^/]+)/owned/save/$', 'bitbucket_username_watched_save',{"link_type":"owned",},'bitbucket_username_owned_save'),
     url(r'^bitbucket/(?P<username>[^/]+)/owned/update/$', 'bitbucket_username_owned_update',{},'bitbucket_username_owned_update'),
-    url(r'^bitbucket/(?P<username>[^/]+)/owned/refresh/$', 'bitbucket_username_watched_refresh',{'owned': True,},'bitbucket_username_owned_refresh'),
+    url(r'^bitbucket/(?P<username>[^/]+)/owned/refresh/$', 'bitbucket_username_watched_refresh',{"link_type":"owned",},'bitbucket_username_owned_refresh'),
 
     # bitbucket authed individual category watched
 
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/$', 'bitbucket_username_category_watched',{},'bitbucket_username_category_starred'),
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/save/$', 'bitbucket_username_category_watched_save',{'owned': False,},'bitbucket_username_category_starred_save'),
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/update/$', 'bitbucket_username_category_watched_update',{},'bitbucket_username_category_starred_update'),
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/watched/refresh/$', 'bitbucket_username_category_watched_refresh',{'owned': False,},'bitbucket_username_category_starred_refresh'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/$', 'bitbucket_username_category_watched',{},'bitbucket_username_category_starred'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/save/$', 'bitbucket_username_category_watched_save',{"link_type":"starred",},'bitbucket_username_category_starred_save'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/update/$', 'bitbucket_username_category_watched_update',{},'bitbucket_username_category_starred_update'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/starred/refresh/$', 'bitbucket_username_category_watched_refresh',{"link_type":"starred",},'bitbucket_username_category_starred_refresh'),
 
     # bitbucket authed individual category owned
 
     url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/$', 'bitbucket_username_category_owned',{},'bitbucket_username_category_owned'),
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/save/$', 'bitbucket_username_category_watched_save',{'owned': True,},'bitbucket_username_category_owned_save'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/save/$', 'bitbucket_username_category_watched_save',{"link_type":"owned",},'bitbucket_username_category_owned_save'),
     url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/update/$', 'bitbucket_username_category_owned_update',{},'bitbucket_username_category_owned_update'),
-    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/refresh/$', 'bitbucket_username_category_watched_refresh',{'owned': True,},'bitbucket_username_category_owned_refresh'),
+    url(r'^bitbucket/(?P<username>[^/]+)/(?P<category>[^/]+)/owned/refresh/$', 'bitbucket_username_category_watched_refresh',{"link_type":"owned",},'bitbucket_username_category_owned_refresh'),
 
 
 )

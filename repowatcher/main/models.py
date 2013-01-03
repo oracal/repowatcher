@@ -10,21 +10,18 @@ import hashlib
 import logging
 logger = logging.getLogger(__name__)
 
-HOST_CHOICES = (
-    (u'github', u'github'),
-    (u'bitbucket', u'bitbucket'),
-)
+HOST_CHOICES = (('github', 'github'),
+               ('bitbucket', 'bitbucket'))
 
-SCM_CHOICES = (
-               (u'git',u'git'),
-               (u'hg',u'mercurial'))
+SCM_CHOICES = (('git','git'),
+              ('hg','mercurial'))
 
 class Repository(models.Model):
     owner = CharField(max_length=100)
     name = CharField(max_length=100)
     slug = SlugField(max_length=201)
-    host_slug = SlugField(max_length=302,unique = True)
-    language = CharField(max_length=100,null = True)
+    host_slug = SlugField(max_length=302, unique = True)
+    language = CharField(max_length=100, null = True)
     html_url = URLField(null = True, max_length=400)
     homepage = URLField(null = True, max_length=400)
     watchers = PositiveIntegerField(null = True)
@@ -33,14 +30,13 @@ class Repository(models.Model):
     description = TextField(null = True)
     extra_data = JSONField(null = True)
     last_modified = DateTimeField(auto_now=True)
-    scm = CharField(max_length=100,choices=SCM_CHOICES,null = True)
-    host = CharField(max_length=100,choices=HOST_CHOICES)
+    scm = CharField(max_length=100, choices=SCM_CHOICES, null = True)
+    host = CharField(max_length=100, choices=HOST_CHOICES)
     private = BooleanField(default = False)
 
     class Meta:
         unique_together = ("owner", "name", "host")
         ordering = ['-watchers']
-
 
     def save(self, *args, **kwargs):
         self.slug = self.owner.lower() + '/' + self.name.lower()
@@ -72,7 +68,7 @@ class RepositoryUser(models.Model):
     repositories = models.ManyToManyField(Repository, through='RepositoryUserRepositoryLink')
     starred = PositiveIntegerField(null = True)
     watched = PositiveIntegerField(null = True)
-    host = CharField(max_length=100,choices=HOST_CHOICES,db_index = True)
+    host = CharField(max_length=100, choices=HOST_CHOICES, db_index = True)
 
     class Meta:
         unique_together = ("login", "host")
@@ -81,17 +77,22 @@ class RepositoryUser(models.Model):
         self.slug = self.host + '/' + self.login.lower()
         super(RepositoryUser, self).save(*args, **kwargs)
 
+LINK_TYPES = (('starred','starred'),
+              ('watched','wathed'),
+              ('owned', 'owned'))
+
+class LinkType(models.Model):
+    name = CharField(max_length = 100, unique = True, choices = LINK_TYPES)
 
 class RepositoryUserRepositoryLink(models.Model):
     user = ForeignKey(RepositoryUser)
     repository = ForeignKey(Repository)
-    owned = BooleanField(default = False)
-    starred = BooleanField(default = True)
     last_modified = DateTimeField(auto_now=True)
+    link_type = ForeignKey(LinkType)
 
     class Meta:
         ordering = ['repository__language', '-repository__watchers']
-        unique_together = ("user", "repository", "owned", "starred")
+        unique_together = ("user", "repository", "link_type")
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
@@ -103,13 +104,12 @@ class UserRepositoryLink(models.Model):
     repository = ForeignKey(Repository)
     order = PositiveIntegerField()
     repository_category = ForeignKey(RepositoryCategory)
-    owned = BooleanField(default = False)
-    starred = BooleanField(default = True)
+    link_type = ForeignKey(LinkType)
     last_modified = DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['repository_category__name','order']
-        unique_together = ("user", "repository", 'owned', "starred")
+        unique_together = ("user", "repository", 'link_type')
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

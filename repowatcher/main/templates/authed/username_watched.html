@@ -1,11 +1,11 @@
 {% extends "header.html" %}
 
 {% block title %}
-<title>repowatcher : {% if github_authed %}github - {{github_username}} - {% if owned %}owned{% else %}watched{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} / {% endif %}{% if bitbucket_authed %}bitbucket - {{bitbucket_username}} - {% if owned %}owned{% else %}watched{% endif %}{% endif %}</title>
+<title>repowatcher : {% if github_authed %}github - {{github_username}} - {% if owned %}owned{% else %}starred{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} / {% endif %}{% if bitbucket_authed %}bitbucket - {{bitbucket_username}} - {% if owned %}owned{% else %}starred{% endif %}{% endif %}</title>
 {% endblock %}
 
 {% block breadcrumbs %}
-<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url github_username_owned github_username %}">owned</a>{% else %}<a href="{% url github_username_watched github_username %}">watched</a>{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href ="{% url bitbucket_username_starred github_username %}">watched</a>{% endif %}{% endif %}</div>
+<div id = "breadcrumbs" class = "span5" style ="margin-top:10px; margin-left: auto; display:block; margin-right: auto; text-align:center">{% if github_authed %}<span style = "color:white; font-weight:bold;">github</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.github_username github_username %}">{{github_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url github_username_owned github_username %}">owned</a>{% else %}<a href="{% url github_username_starred github_username %}">starred</a>{% endif %}{% endif %}{% if github_authed and bitbucket_authed %} <span style = "color:white;">/</span> {% endif %}{% if bitbucket_authed %}<span style = "color:white; font-weight:bold;">bitbucket</span><span style = "color:white;"> → </span><a href = "{% url repowatcher.main.views.bitbucket_username bitbucket_username %}">{{bitbucket_username|lower}}</a><span style = "color:white;"> → </span>{% if owned %}<a href="{% url bitbucket_username_owned bitbucket_username %}">owned</a>{% else %}<a href ="{% url bitbucket_username_starred github_username %}">starred</a>{% endif %}{% endif %}</div>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +32,7 @@ height:35px;
 							{% if owned %}
 							<th style="overflow:hidden;"><a href ="{% url authed_category_owned category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% else %}
-							<th style="overflow:hidden;"><a href ="{% url authed_category_watched category|urlencode:"/+:-" %}">{{category}}</a></th>
+							<th style="overflow:hidden;"><a href ="{% url authed_category_starred category|urlencode:"/+:-" %}">{{category}}</a></th>
 							{% endif %}
 						</tr>
 					</thead>
@@ -92,7 +92,7 @@ $(function(){
 			$('<div>').attr('class','span3').append(
 					$('<table>').attr('class',"repositories table table-striped table-bordered").append(
 							$('<thead>').append(
-							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url github_username_category_owned username "bookmarked" %}{% else %}{% url github_username_category_watched username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
+							$('<tr>').append($('<th>').append($('<a>').attr('href','{% if owned %}{% url github_username_category_owned username "bookmarked" %}{% else %}{% url github_username_category_starred username "bookmarked" %}{% endif %}').css('color','green').text('bookmarked'))))).append(
 									$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>"))))));
   }
 
@@ -301,7 +301,7 @@ $(function(){
   {% if owned %}
   url: '{% url github_username_owned_save username %}',
   {% else %}
-  url: '{% url github_username_watched_save username %}',
+  url: '{% url github_username_starred_save username %}',
   {% endif %}
   data: {
     order: JSON.stringify(serialize()),
@@ -326,7 +326,7 @@ $(function(){
 	  var categoryDiv = $('<div>').attr('class','span3').append(
 				$('<table>').attr('class',"repositories table table-striped table-bordered").append(
 						$('<thead>').append(
-						$('<tr>').append($('<th>').append($('<a>').attr('href','github/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/watched'{% endif %}).css('color','purple').text(category))))).append(
+						$('<tr>').append($('<th>').append($('<a>').attr('href','github/{{username}}/' + category + {% if owned %}'/owned'{% else %}'/starred'{% endif %}).css('color','purple').text(category))))).append(
 								$('<tbody>').attr('class',"connectedSortable").append($("<tr>").addClass('dragDisabled').append($("<td>")))));
 
 	  $("#repositories_list").append(categoryDiv).masonry( 'appended', categoryDiv );

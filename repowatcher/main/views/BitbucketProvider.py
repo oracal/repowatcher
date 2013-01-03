@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from oauth_hook.hook import OAuthHook
 from operator import itemgetter
-from repowatcher.main.models import RepositoryUser, Repository
+from repowatcher.main.models import RepositoryUser, Repository, LinkType
 from repowatcher.main.tasks import get_events
 import json
 import requests
@@ -137,38 +137,37 @@ class BitbucketProvider(ProviderBase):
         repo_events = sorted(repo_events,key=itemgetter('created_on'), reverse = True)[:30]
         return repo_events
 
-    def get_repositories(self, username, owned):
+    def get_repositories(self, username, link_type):
         repositories = []
-        if owned:
+        if link_type == "owned":
             try:
                 repositories = self.slumber.users(username).get()['repositories']
             except Exception:
                 pass
-        else:
+        elif link_type == "starred":
             try:
                 repositories = self.slumber.user.follows.get()
             except Exception:
                 pass
-
         return repositories
 
     def get_watched_repositories(self, username):
-        return self.get_repositories(username = username,owned = False)
+        return self.get_repositories(username = username, link_type = "starred")
 
     def get_owned_repositories(self, username):
-        return self.get_repositories(username = username,owned = True)
+        return self.get_repositories(username = username, link_type = "owned")
 
     def retrieve_watched_repositories_list(self, username):
-        return self.retrieve_repositories_list(username = username, owned = False)
+        return self.retrieve_repositories_list(username = username, link_type = "starred")
 
     def retrieve_owned_repositories_list(self, username):
-        return self.retrieve_repositories_list(username = username, owned = True)
+        return self.retrieve_repositories_list(username = username, link_type = "owned")
 
     def retrieve_watched_repositories_dict(self, username):
-        return self.retrieve_repositories_dict(username = username, owned = False)
+        return self.retrieve_repositories_dict(username = username, link_type = "starred")
 
     def retrieve_owned_repositories_dict(self, username):
-        return self.retrieve_repositories_dict(username = username, owned = True)
+        return self.retrieve_repositories_dict(username = username, link_type = "owned")
 
     def search_repository(self, repository):
         try:

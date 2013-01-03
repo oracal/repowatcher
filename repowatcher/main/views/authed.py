@@ -11,7 +11,7 @@ from django.template.context import RequestContext
 from oauth_hook import OAuthHook
 from operator import itemgetter
 from repowatcher.main.models import Repository, RepositoryCategory, \
-    RepositoryUser, RepositoryUserRepositoryLink
+    RepositoryUser, RepositoryUserRepositoryLink, LinkType
 from repowatcher.main.tasks import get_events
 from repowatcher.main.views.BitbucketProvider import BitbucketProvider
 import dateutil.parser
@@ -55,9 +55,37 @@ def authed(request):
             github_user_event['created_on'] = dateutil.parser.parse(github_user_event['created_at'])
 
         # Get repository information
+        repositories, _ = github_provider.retrieve_starred_repositories_list(github_username)
+
+        if len(repositories) == 0:
+            repo_link_type, _ = LinkType.objects.get_or_create(name = "starred")
+            if not github_repository_user:
+                github_repository_user,_ = RepositoryUser.objects.get_or_create(login=github_username,host='github')
+            watched = github_provider.get_starred_repositories(github_username)
+            for repo in watched:
+                update = False
+                try:
+                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
+                except ObjectDoesNotExist:
+                    update = True
+                    repository = Repository()
+                if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
+                    repository = github_provider.create_or_update_repository_details(repo, repository)
+                    if not repository.private:
+                        repository.save()
+                    RepositoryCategory.objects.get_or_create(name = repository.language)
+                if not repository.private:
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, link_type = repo_link_type)
+
+                repositories.append(repository)
+        github_repository_user.starred = len(repositories)
+        github_repository_user.save()
+
+        # Get repository information
         repositories, _ = github_provider.retrieve_watched_repositories_list(github_username)
 
         if len(repositories) == 0:
+            repo_link_type, _ = LinkType.objects.get_or_create(name = "watched")
             if not github_repository_user:
                 github_repository_user,_ = RepositoryUser.objects.get_or_create(login=github_username,host='github')
             watched = github_provider.get_watched_repositories(github_username)
@@ -74,37 +102,11 @@ def authed(request):
                         repository.save()
                     RepositoryCategory.objects.get_or_create(name = repository.language)
                 if not repository.private:
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = False, starred = True)
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, link_type = repo_link_type)
 
                 repositories.append(repository)
-            github_repository_user.starred = len(repositories)
-            github_repository_user.save()
-
-        # Get repository information
-        repositories, _ = github_provider.retrieve_watched_repositories_list(github_username, starred = False)
-
-        if len(repositories) == 0:
-            if not github_repository_user:
-                github_repository_user,_ = RepositoryUser.objects.get_or_create(login=github_username,host='github')
-            watched = github_provider.get_watched_repositories(github_username)
-            for repo in watched:
-                update = False
-                try:
-                    repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
-                except ObjectDoesNotExist:
-                    update = True
-                    repository = Repository()
-                if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
-                    repository = github_provider.create_or_update_repository_details(repo, repository)
-                    if not repository.private:
-                        repository.save()
-                    RepositoryCategory.objects.get_or_create(name = repository.language)
-                if not repository.private:
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = False, starred = False)
-
-                repositories.append(repository)
-            github_repository_user.watched = len(repositories)
-            github_repository_user.save()
+        github_repository_user.watched = len(repositories)
+        github_repository_user.save()
     except ObjectDoesNotExist:
         github_authed = False
 
@@ -174,6 +176,7 @@ def authed(request):
 
 @login_required
 def authed_watched(request):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "starred")
     repositories_by_language = defaultdict(list)
     github_repositories_by_language = defaultdict(list)
     bitbucket_repositories_by_language = defaultdict(list)
@@ -186,9 +189,9 @@ def authed_watched(request):
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
-        github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
+        github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username,"starred")
         if len(github_repositories_by_language) == 0:
-            watched = github_provider.get_repositories(github_username, owned)
+            watched = github_provider.get_repositories(github_username, "starred")
             count = 0
             for repo in watched:
                 update = False
@@ -203,7 +206,7 @@ def authed_watched(request):
                         repository.save()
                 if not repository.private:
                     count += 1
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = owned)
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, link_type = repo_link_type)
 
                 github_repositories_by_language[repository.language].append(repository)
             for category in github_repositories_by_language.keys():
@@ -256,6 +259,7 @@ def authed_watched(request):
 
 @login_required
 def authed_owned(request):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "owned")
     repositories_by_language = defaultdict(list)
     github_repositories_by_language = defaultdict(list)
     bitbucket_repositories_by_language = defaultdict(list)
@@ -269,9 +273,9 @@ def authed_owned(request):
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
-        github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, owned)
+        github_repositories_by_language, github_repository_user = github_provider.retrieve_repositories_dict(github_username, "owned")
         if len(github_repositories_by_language) == 0:
-            owned_repos = github_provider.get_repositories(github_username, owned)
+            owned_repos = github_provider.get_repositories(github_username, "owned")
 
             count = 0
             for repo in owned_repos:
@@ -287,7 +291,7 @@ def authed_owned(request):
                         repository.save()
                 if not repository.private:
                     count += 1
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = owned)
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, link_type = repo_link_type)
 
                 github_repositories_by_language[repository.language.lower()].append(repository)
             for category in github_repositories_by_language.keys():
@@ -336,6 +340,7 @@ def authed_owned(request):
 @login_required
 def authed_category_watched(request,category):
     """has all github repos and the latest 30 events for a username with a specific category"""
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "starred")
     owned = False
     category = urllib.unquote(category).lower()
     github_watched_filtered = []
@@ -352,11 +357,11 @@ def authed_category_watched(request,category):
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
-        github_watched_filtered, github_repository_user = github_provider.retrieve_category_repositories(github_username, category, owned)
+        github_watched_filtered, github_repository_user = github_provider.retrieve_category_repositories(github_username, category, "starred")
         watched_filtered.extend(github_watched_filtered)
         github_repository_user.save()
         if len(github_watched_filtered) == 0:
-            watched = github_provider.get_repositories(github_username, owned)
+            watched = github_provider.get_repositories(github_username, "starred")
 
             count = 0
             for repo in watched:
@@ -375,7 +380,7 @@ def authed_category_watched(request,category):
                     if not repository.private:
                         count += 1
                 if not repository.private:
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned)
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
             watched_filtered.extend(github_watched_filtered)
             watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
             RepositoryCategory.objects.get_or_create(name = category.lower())
@@ -399,7 +404,7 @@ def authed_category_watched(request,category):
         watched_filtered.extend(bitbucket_watched_filtered)
         bitbucket_repository_user.save()
         if len(bitbucket_watched_filtered) == 0:
-            watched = bitbucket_provider.get_repositories(bitbucket_username, owned)
+            watched = bitbucket_provider.get_watched_repositories(bitbucket_username)
             for repo in watched:
                 update = False
                 try:
@@ -431,6 +436,7 @@ def authed_category_watched(request,category):
 @login_required
 def authed_category_owned(request,category):
     """has all github repos and the latest 30 events for a username with a specific category"""
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "owned")
     owned = True
     category = urllib.unquote(category).lower()
     github_repo_events = []
@@ -447,11 +453,11 @@ def authed_category_owned(request,category):
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         github_provider = GithubProvider(user)
-        github_watched_filtered, github_repository_user = github_provider.retrieve_category_repositories(github_username, category, owned)
+        github_watched_filtered, github_repository_user = github_provider.retrieve_category_repositories(github_username, category, "owned")
         watched_filtered.extend(github_watched_filtered)
         github_repository_user.save()
-        if len(github_repository_user) == 0:
-            watched = github_provider.get_repositories(github_username, owned)
+        if len(github_watched_filtered) == 0:
+            watched = github_provider.get_repositories(github_username, "owned")
             category_lower = category.lower()
             for repo in watched:
                 update = False
@@ -467,7 +473,7 @@ def authed_category_owned(request,category):
                 if repository.language == category_lower:
                     github_watched_filtered.append(repository)
                 if not repository.private:
-                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, owned = owned)
+                    RepositoryUserRepositoryLink.objects.get_or_create(user = github_repository_user, repository = repository, link_type = repo_link_type)
             watched_filtered.extend(github_watched_filtered)
             watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
             RepositoryCategory.objects.get_or_create(name = category.lower())

@@ -10,7 +10,7 @@ from django.template.context import RequestContext
 from django.views.decorators.cache import never_cache, cache_control
 from repowatcher.main.decorators import ajax_required
 from repowatcher.main.models import Repository, UserRepositoryLink, \
-    RepositoryCategory, RepositoryUser, RepositoryUserRepositoryLink
+    RepositoryCategory, RepositoryUser, RepositoryUserRepositoryLink, LinkType
 from repowatcher.main.utils import expire_view_cache
 import hashlib
 import json
@@ -56,8 +56,32 @@ def github_username(request, username):
     user_events = github_provider.get_user_events(username)
 
     # Get repository information
+    repositories, _ = github_provider.retrieve_starred_repositories_list(username)
+    if len(repositories) == 0:
+        repo_link_type, _ = LinkType.objects.get_or_create(name = "starred")
+        for repo in github_provider.get_starred_repositories(username):
+            update = False
+            try:
+                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
+            except ObjectDoesNotExist:
+                update = True
+                repository = Repository()
+            if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
+                repository = github_provider.create_or_update_repository_details(repo, repository)
+                if not repository.private:
+                    repository.save()
+                repository = repository
+                RepositoryCategory.objects.get_or_create(name = repository.language)
+            if not repository.private:
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
+
+            repositories.append(repository)
+    repository_user.starred = len(repositories)
+
+    # Get repository information
     repositories, _ = github_provider.retrieve_watched_repositories_list(username)
     if len(repositories) == 0:
+        repo_link_type, _ = LinkType.objects.get_or_create(name = "watched")
         for repo in github_provider.get_watched_repositories(username):
             update = False
             try:
@@ -72,29 +96,7 @@ def github_username(request, username):
                 repository = repository
                 RepositoryCategory.objects.get_or_create(name = repository.language)
             if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = False)
-
-            repositories.append(repository)
-    repository_user.starred = len(repositories)
-
-    # Get repository information
-    repositories, _ = github_provider.retrieve_watched_repositories_list(username, starred = False)
-    if len(repositories) == 0:
-        for repo in github_provider.get_watched_repositories(username, starred = False):
-            update = False
-            try:
-                repository = Repository.objects.get(host_slug= 'github/'+repo['owner'].lower() + '/' + repo['name'].lower())
-            except ObjectDoesNotExist:
-                update = True
-                repository = Repository()
-            if update or (datetime.now() - repository.last_modified) > timedelta(days = 1):
-                repository = github_provider.create_or_update_repository_details(repo, repository)
-                if not repository.private:
-                    repository.save()
-                repository = repository
-                RepositoryCategory.objects.get_or_create(name = repository.language)
-            if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = False)
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
 
             repositories.append(repository)
     repository_user.watched = len(repositories)
@@ -102,16 +104,23 @@ def github_username(request, username):
 
     return render_to_response('github_username.html', {'user_events':user_events,'repository_user':repository_user},context_instance=RequestContext(request))
 
-def github_username_watched(request,username,owned=False, starred = True):
+def github_username_watched(request,username, link_type):
     """has all github repos for a username"""
+    owned = False
+    starred = False
+    if link_type == "owned":
+        owned = True
+    elif link_type == "starred":
+        starred = True
+    repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
     username = urllib.unquote(username)
     user = request.user
     github_provider = GithubProvider(user)
 
-    repositories_by_language, repository_user = github_provider.retrieve_repositories_dict(username, owned, starred = starred)
+    repositories_by_language, repository_user = github_provider.retrieve_repositories_dict(username, link_type = link_type)
     repository_user.save()
     if len(repositories_by_language) == 0:
-        watched = github_provider.get_repositories(username, owned, starred = starred)
+        watched = github_provider.get_repositories(username, link_type = link_type)
         count = 0
         for repo in watched:
             update = False
@@ -126,14 +135,17 @@ def github_username_watched(request,username,owned=False, starred = True):
                     repository.save()
             if not repository.private:
                 count += 1
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned, starred = starred)
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
 
             repositories_by_language[repository.language].append(repository)
-        if not owned:
-            if starred:
-                repository_user.starred = count
-            else:
-                repository_user.watched = count
+        if repo_link_type.name == "owned":
+            owned = True
+            pass
+        elif repo_link_type.name == "starred":
+            repository_user.starred = count
+            starred = True
+        elif repo_link_type.name == "watched":
+            repository_user.watched = count
         repository_user.save()
         for category in repositories_by_language.keys():
             RepositoryCategory.objects.get_or_create(name = category)
@@ -142,7 +154,7 @@ def github_username_watched(request,username,owned=False, starred = True):
 
 @ajax_required
 @never_cache
-def github_username_watched_save(request,username,owned = False, starred = True):
+def github_username_watched_save(request,username, link_type):
     user = request.user
     username = urllib.unquote(username)
     try:
@@ -154,7 +166,7 @@ def github_username_watched_save(request,username,owned = False, starred = True)
                 updated_dictionary ={}
             profile.save()
             github_provider = GithubProvider(user)
-            github_provider.save_repositories(updated_dictionary, owned, starred = starred)
+            github_provider.save_repositories(updated_dictionary, link_type)
             data= {'outcome':'success'}
             return HttpResponse(json.dumps(data),mimetype="application/json")
     except ObjectDoesNotExist:
@@ -165,20 +177,20 @@ def github_username_watched_save(request,username,owned = False, starred = True)
 
 @login_required
 @never_cache
-def github_username_watched_update(request,username,owned = False, starred = True):
+def github_username_watched_update(request,username, link_type):
     username = urllib.unquote(username)
     user = request.user
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         if username == github_username:
             github_provider = GithubProvider(user)
-            repository_user = github_provider.update_repositories(username, owned, starred = starred)
+            repository_user = github_provider.update_repositories(username, link_type)
             repository_user.save()
-            if owned:
+            if link_type == "owned":
                 return HttpResponseRedirect(reverse('github_username_owned', kwargs={'username': username}))
-            elif starred:
+            elif link_type == "starred":
                 return HttpResponseRedirect(reverse('github_username_starred', kwargs={'username': username}))
-            else:
+            elif link_type == "watched":
                 return HttpResponseRedirect(reverse('github_username_watched', kwargs={'username': username}))
     except ObjectDoesNotExist:
         pass
@@ -188,7 +200,8 @@ def github_username_watched_update(request,username,owned = False, starred = Tru
 
 @login_required
 @never_cache
-def github_username_watched_refresh(request,username,owned = False, starred = True):
+def github_username_watched_refresh(request,username, link_type):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
     user = request.user
     username = urllib.unquote(username)
     try:
@@ -197,15 +210,15 @@ def github_username_watched_refresh(request,username,owned = False, starred = Tr
             profile = user.get_profile()
             profile.save()
             try:
-                links = profile.userrepositorylink_set.filter(owned=owned).filter(starred=starred).filter(repository__host='github')
+                links = profile.userrepositorylink_set.filter(link_type = repo_link_type).filter(repository__host='github')
             except ObjectDoesNotExist:
                 pass
             links.delete()
-            if owned:
+            if repo_link_type.name == "owned":
                 return HttpResponseRedirect(reverse('github_username_owned', kwargs={'username': username}))
-            elif starred:
+            elif repo_link_type.name == "starred":
                 return HttpResponseRedirect(reverse('github_username_starred', kwargs={'username': username}))
-            else:
+            elif repo_link_type.name == "watched":
                 return HttpResponseRedirect(reverse('github_username_watched', kwargs={'username': username}))
     except ObjectDoesNotExist:
         pass
@@ -213,18 +226,21 @@ def github_username_watched_refresh(request,username,owned = False, starred = Tr
     res.status_code = 401
     return res
 
-def github_username_category_watched(request,username,category,owned = False, starred = True):
+def github_username_category_watched(request,username,category, link_type):
     """has all github repos and the latest 30 events for a username with a specific category"""
+    owned = False
+    starred = False
+    repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
     if request.GET.get('sorted_by_watchers', 'false') == 'true':
         sorted_by_watchers = True
     username = urllib.unquote(username)
     category = urllib.unquote(category).lower()
     user = request.user
     github_provider = GithubProvider(user)
-    watched_filtered, repository_user = github_provider.retrieve_category_repositories(username, category, owned, starred = starred)
+    watched_filtered, repository_user = github_provider.retrieve_category_repositories(username, category, link_type)
     repository_user.save()
     if len(watched_filtered) == 0:
-        watched = github_provider.get_repositories(username, owned, starred = starred)
+        watched = github_provider.get_repositories(username, link_type)
         count = 0
         for repo in watched:
             update = False
@@ -242,16 +258,22 @@ def github_username_category_watched(request,username,category,owned = False, st
                 if not repository.private:
                     count += 1
             if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned, starred = starred)
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
         RepositoryCategory.objects.get_or_create(name = category.lower())
-        if not owned:
-            if starred:
-                repository_user.starred = count
-            else:
-                repository_user.watched = count
+        if repo_link_type.name == "owned":
+            pass
+        elif repo_link_type.name == "starred":
+            repository_user.starred = count
+        elif repo_link_type.name == "watched":
+            repository_user.watched = count
         repository_user.save()
         watched_filtered.sort(key=lambda x: x.watchers, reverse = True)
-
+    if repo_link_type.name == "owned":
+        owned = True
+    elif repo_link_type.name == "starred":
+        starred = True
+    elif repo_link_type.name == "watched":
+        pass
     # Get repository events
     repo_events = []
 #    page = 0
@@ -282,7 +304,7 @@ def github_username_category_watched(request,username,category,owned = False, st
 
 @ajax_required
 @never_cache
-def github_username_category_watched_save(request, username, category, owned=False, starred = True):
+def github_username_category_watched_save(request, username, category, link_type):
     username = urllib.unquote(username)
     user = request.user
     category = urllib.unquote(category).lower()
@@ -296,7 +318,7 @@ def github_username_category_watched_save(request, username, category, owned=Fal
                 updated_list =[]
             updated_dictionary = {category:updated_list}
             github_provider = GithubProvider(user)
-            github_provider.save_repositories(updated_dictionary, owned, starred = starred)
+            github_provider.save_repositories(updated_dictionary, link_type)
             data= {'outcome': 'success'}
             return HttpResponse(json.dumps(data),mimetype="application/json")
     except ObjectDoesNotExist:
@@ -307,7 +329,7 @@ def github_username_category_watched_save(request, username, category, owned=Fal
 
 @login_required
 @never_cache
-def github_username_category_watched_update(request,username,category, owned = False, starred = True):
+def github_username_category_watched_update(request,username,category, link_type):
     category = urllib.unquote(category).lower()
     username = urllib.unquote(username)
     user = request.user
@@ -318,13 +340,13 @@ def github_username_category_watched_update(request,username,category, owned = F
             profile = user.get_profile()
             profile.save()
             github_provider = GithubProvider(user)
-            repository_user = github_provider.update_category_repositories(username, category, owned, starred = starred)
+            repository_user = github_provider.update_category_repositories(username, category, link_type)
             repository_user.save()
-            if owned:
+            if link_type == "owned":
                 return HttpResponseRedirect(reverse('github_username_category_owned', kwargs={'username': username,'category':category}))
-            elif starred:
+            elif link_type == "starred":
                 return HttpResponseRedirect(reverse('github_username_category_starred', kwargs={'username': username,'category':category}))
-            else:
+            elif link_type == "watched":
                 return HttpResponseRedirect(reverse('github_username_category_watched', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
         pass
@@ -334,23 +356,24 @@ def github_username_category_watched_update(request,username,category, owned = F
 
 @login_required
 @never_cache
-def github_username_category_watched_refresh(request,username,category,owned = False, starred = True):
+def github_username_category_watched_refresh(request,username,category, link_type):
     category = urllib.unquote(category).lower()
     username = urllib.unquote(username)
     user = request.user
     try:
         github_username = user.social_auth.get(provider='github').extra_data['username']
         if username == github_username:
+            repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
             profile = user.get_profile()
             profile.save()
-            links = profile.userrepositorylink_set.filter(repository_category__name__iexact=category).filter(owned = owned).filter(starred=starred).filter(repository__host='github')
+            links = profile.userrepositorylink_set.filter(repository_category__name__iexact=category).filter(link_type = repo_link_type).filter(repository__host='github')
             links.delete()
             username = user.social_auth.get(provider='github').extra_data['username']
-            if owned:
+            if repo_link_type.name == "owned":
                 return HttpResponseRedirect(reverse('github_username_category_owned', kwargs={'username': username,'category':category}))
-            elif starred:
+            elif repo_link_type.name == "starred":
                 return HttpResponseRedirect(reverse('github_username_category_starred', kwargs={'username': username,'category':category}))
-            else:
+            elif repo_link_type.name == "watched":
                 return HttpResponseRedirect(reverse('github_username_category_watched', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
         pass
@@ -364,8 +387,8 @@ def github_repo(request, owner, repo):
     user = request.user
     github_provider = GithubProvider(user)
     # check to see if the repo is being watched by the authed user or not
-    watched = github_provider.get_watched_status(owner, repo, starred = False)
-    starred = github_provider.get_watched_status(owner, repo)
+    watched = github_provider.get_watched_status(owner, repo)
+    starred = github_provider.get_starred_status(owner, repo)
     update = False
     try:
         repository = github_provider.retrieve_repository_details(owner, repo)
@@ -382,12 +405,12 @@ def github_repo(request, owner, repo):
 
 @ajax_required
 @never_cache
-def github_repo_watch(request, owner, repo, starred = True):
+def github_repo_watch(request, owner, repo):
     user = request.user
     if user.is_authenticated():
         try:
             github_provider = GithubProvider(user)
-            github_provider.watch(owner, repo, starred = starred)
+            github_provider.watch(owner, repo)
             data= {'outcome':'success'}
             github_username = None
             bitbucket_username = None
@@ -412,16 +435,82 @@ def github_repo_watch(request, owner, repo, starred = True):
 
 @ajax_required
 @never_cache
-def github_repo_unwatch(request, owner, repo, starred = True):
+def github_repo_star(request, owner, repo):
+    user = request.user
+    if user.is_authenticated():
+        try:
+            github_provider = GithubProvider(user)
+            github_provider.star(owner, repo)
+            data= {'outcome':'success'}
+            github_username = None
+            bitbucket_username = None
+            try:
+                github_username = user.social_auth.get(provider='github').extra_data['username']
+                github_prefix = github_username
+            except:
+                github_prefix = ''
+            try:
+                bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
+                bitbucket_prefix=bitbucket_username
+            except:
+                bitbucket_prefix = ''
+            custom_prefix = '.'.join((hashlib.md5(github_prefix).hexdigest(),hashlib.md5(bitbucket_prefix).hexdigest()))
+            expire_view_cache('repowatcher.main.views.github_repo', kwargs = {'owner':owner,'repo':repo}, key_prefix=custom_prefix)
+            return HttpResponse(json.dumps(data),mimetype="application/json")
+        except ObjectDoesNotExist:
+            pass
+    res = HttpResponse("Unauthorized")
+    res.status_code = 401
+    return res
+
+@ajax_required
+@never_cache
+def github_repo_unwatch(request, owner, repo):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "watched")
     user = request.user
     if user.is_authenticated():
         try:
             host_slug = ('/'.join(('github',owner,repo))).lower()
             profile = user.get_profile()
             repository = Repository.objects.get(host_slug= host_slug)
-            UserRepositoryLink.objects.filter(user = profile).filter(repository = repository).filter(owned = False).filter(starred = starred).delete()
+            UserRepositoryLink.objects.filter(user = profile).filter(repository = repository).filter(link_type = repo_link_type).delete()
             github_provider = GithubProvider(user)
-            github_provider.unwatch(owner, repo, starred = starred)
+            github_provider.unwatch(owner, repo)
+            data= {'outcome':'success'}
+            github_username = None
+            bitbucket_username = None
+            try:
+                github_username = user.social_auth.get(provider='github').extra_data['username']
+                github_prefix = github_username
+            except:
+                github_prefix = ''
+            try:
+                bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
+                bitbucket_prefix=bitbucket_username
+            except:
+                bitbucket_prefix = ''
+            custom_prefix = '.'.join((hashlib.md5(github_prefix).hexdigest(),hashlib.md5(bitbucket_prefix).hexdigest()))
+            expire_view_cache('repowatcher.main.views.github_repo', kwargs = {'owner':owner,'repo':repo}, key_prefix=custom_prefix)
+            return HttpResponse(json.dumps(data),mimetype="application/json")
+        except ObjectDoesNotExist:
+            pass
+    res = HttpResponse("Unauthorized")
+    res.status_code = 401
+    return res
+
+@ajax_required
+@never_cache
+def github_repo_unstar(request, owner, repo):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "starred")
+    user = request.user
+    if user.is_authenticated():
+        try:
+            host_slug = ('/'.join(('github',owner,repo))).lower()
+            profile = user.get_profile()
+            repository = Repository.objects.get(host_slug= host_slug)
+            UserRepositoryLink.objects.filter(user = profile).filter(repository = repository).filter(link_type = repo_link_type).delete()
+            github_provider = GithubProvider(user)
+            github_provider.unstar(owner, repo)
             data= {'outcome':'success'}
             github_username = None
             bitbucket_username = None

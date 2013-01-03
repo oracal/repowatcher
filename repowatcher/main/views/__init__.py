@@ -2,7 +2,7 @@ from general import about, index, search, typeahead, watched_popular,\
 watched_language_popular
 from social_auth import error, logout, authed_logout
 from github import anonymous_github_user, github,\
-github_repo, github_repo_unwatch, github_repo_watch, github_username,\
+github_repo, github_repo_unwatch, github_repo_star, github_repo_unstar, github_repo_watch, github_username,\
 github_username_category_watched, github_username_category_watched_refresh,\
 github_username_category_watched_save,\
 github_username_category_watched_update, github_username_watched,\

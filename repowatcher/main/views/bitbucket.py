@@ -12,7 +12,7 @@ from django.views.decorators.cache import never_cache, cache_control
 from oauth_hook import OAuthHook
 from repowatcher.main.decorators import ajax_required
 from repowatcher.main.models import Repository, UserRepositoryLink, \
-    RepositoryCategory, RepositoryUser, RepositoryUserRepositoryLink
+    RepositoryCategory, RepositoryUser, RepositoryUserRepositoryLink, LinkType
 from repowatcher.main.views.BitbucketProvider import BitbucketProvider
 import json
 import logging
@@ -91,6 +91,7 @@ def bitbucket_username_watched(request,username):
     return res
 
 def bitbucket_username_owned(request,username):
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "owned")
     user = request.user
     bitbucket_provider = BitbucketProvider(user)
     repositories_by_language, repository_user = bitbucket_provider.retrieve_owned_repositories_dict(username)
@@ -110,7 +111,7 @@ def bitbucket_username_owned(request,username):
                 if not repository.private:
                     repository.save()
             if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = True)
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
             repositories_by_language[repository.language].append(repository)
         repository_user.public_repos = len(watched)
         repository_user.save()
@@ -144,6 +145,7 @@ def bitbucket_username(request, username):
     watched_repositories, repository_user = bitbucket_provider.retrieve_watched_repositories_list(username)
 
     if len(owned_repositories) == 0:
+        repo_link_type, _ = LinkType.objects.get_or_create(name = "owned")
         owned = bitbucket_provider.get_owned_repositories(username)
         for repo in owned:
             update = False
@@ -158,7 +160,7 @@ def bitbucket_username(request, username):
                     repository.save()
                 RepositoryCategory.objects.get_or_create(name=repository.language)
             if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user=repository_user, repository = repository, owned = True)
+                RepositoryUserRepositoryLink.objects.get_or_create(user=repository_user, repository = repository, link_type = repo_link_type)
             owned_repositories.append(repository)
         repository_user.public_repos = len(owned_repositories)
         repository_user.save()
@@ -182,7 +184,7 @@ def bitbucket_username(request, username):
 
 @ajax_required
 @never_cache
-def bitbucket_username_watched_save(request, username, owned=False):
+def bitbucket_username_watched_save(request, username, link_type):
     user = request.user
     username = urllib.unquote(username)
     try:
@@ -194,7 +196,7 @@ def bitbucket_username_watched_save(request, username, owned=False):
             except ValueError:
                 updated_dictionary = {}
             bitbucket_provider = BitbucketProvider(user)
-            bitbucket_provider.save_repositories(updated_dictionary, owned)
+            bitbucket_provider.save_repositories(updated_dictionary, link_type)
             data= {'outcome':'success'}
             return HttpResponse(json.dumps(data),mimetype="application/json")
     except ObjectDoesNotExist:
@@ -206,20 +208,21 @@ def bitbucket_username_watched_save(request, username, owned=False):
 
 @login_required
 @never_cache
-def bitbucket_username_watched_refresh(request,username,owned):
+def bitbucket_username_watched_refresh(request,username,link_type):
     user = request.user
+    repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
     username = urllib.unquote(username)
     try:
         bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
         if username == bitbucket_username:
             profile = user.get_profile()
-            links = profile.userrepositorylink_set.filter(owned=owned).filter(repository__host='bitbucket')
+            links = profile.userrepositorylink_set.filter(link_type = repo_link_type).filter(repository__host='bitbucket')
             links.delete()
             profile.save()
-            if owned:
+            if repo_link_type.name == "owned":
                 return HttpResponseRedirect(reverse('bitbucket_username_owned', kwargs={'username': username}))
             else:
-                return HttpResponseRedirect(reverse('bitbucket_username_watched', kwargs={'username': username}))
+                return HttpResponseRedirect(reverse('bitbucket_username_starred', kwargs={'username': username}))
     except ObjectDoesNotExist:
         pass
     res = HttpResponse("Unauthorized")
@@ -228,7 +231,7 @@ def bitbucket_username_watched_refresh(request,username,owned):
 
 @ajax_required
 @never_cache
-def bitbucket_username_category_watched_save(request, username, category, owned=False):
+def bitbucket_username_category_watched_save(request, username, category, link_type):
     username = urllib.unquote(username)
     user = request.user
     category = urllib.unquote(category)
@@ -241,7 +244,7 @@ def bitbucket_username_category_watched_save(request, username, category, owned=
                 updated_list = []
             updated_dictionary = {category: updated_list}
             bitbucket_provider = BitbucketProvider(user)
-            bitbucket_provider.save_repositories(updated_dictionary, owned)
+            bitbucket_provider.save_repositories(updated_dictionary, link_type)
             data = {'outcome': 'success'}
             profile.save()
             return HttpResponse(json.dumps(data),mimetype="application/json")
@@ -253,21 +256,22 @@ def bitbucket_username_category_watched_save(request, username, category, owned=
 
 @login_required
 @never_cache
-def bitbucket_username_category_watched_refresh(request, username, category, owned):
+def bitbucket_username_category_watched_refresh(request, username, category, link_type):
     user = request.user
+    repo_link_type, _ = LinkType.objects.get_or_create(name = link_type)
     username = urllib.unquote(username)
     category = urllib.unquote(category)
     try:
         bitbucket_username = user.social_auth.get(provider='bitbucket').extra_data['username']
         if username == bitbucket_username:
             profile = user.get_profile()
-            links = profile.userrepositorylink_set.filter(owned=owned).filter(repository_category__name__iexact=category).filter(repository__host='bitbucket')
+            links = profile.userrepositorylink_set.filter(link_type = repo_link_type).filter(repository_category__name__iexact=category).filter(repository__host='bitbucket')
             links.delete()
             profile.save()
-            if owned:
+            if repo_link_type.name == "owned":
                 return HttpResponseRedirect(reverse('bitbucket_username_category_owned', kwargs={'username': username,'category':category}))
             else:
-                return HttpResponseRedirect(reverse('bitbucket_username_category_watched', kwargs={'username': username,'category':category}))
+                return HttpResponseRedirect(reverse('bitbucket_username_category_starred', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
         pass
     res = HttpResponse("Unauthorized")
@@ -276,6 +280,7 @@ def bitbucket_username_category_watched_refresh(request, username, category, own
 
 def bitbucket_username_category_owned(request,username,category):
     """has all bitbucket repos and the latest 30 events for a username with a specific category"""
+    repo_link_type, _ = LinkType.objects.get_or_create(name = "owned")
     owned = True
     username = urllib.unquote(username)
     category = urllib.unquote(category)
@@ -301,7 +306,7 @@ def bitbucket_username_category_owned(request,username,category):
             if repository.language == category_lower:
                 watched_filtered.append(repository)
             if not repository.private:
-                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, owned = owned)
+                RepositoryUserRepositoryLink.objects.get_or_create(user = repository_user, repository = repository, link_type = repo_link_type)
         RepositoryCategory.objects.get_or_create(name = category)
         repository_user.public_repos = len(owned)
         repository_user.save()
@@ -325,7 +330,7 @@ def bitbucket_username_category_watched(request,username,category):
             watched_filtered, repository_user = bitbucket_provider.retrieve_watched_category_repositories(username, category)
             repository_user.save()
             if len(watched_filtered) == 0:
-                watched = bitbucket_provider.get_repositories(username, owned)
+                watched = bitbucket_provider.get_repositories(username, "starred")
                 for repo in watched:
                     update = False
                     try:
@@ -362,9 +367,9 @@ def bitbucket_username_watched_update(request, username):
             profile.save()
             bitbucket_provider = BitbucketProvider(user)
             repository_user = bitbucket_provider.update_watched_repositories(username)
-            repository_user.watched = None
+            repository_user.starred = None
             repository_user.save()
-            return HttpResponseRedirect(reverse('bitbucket_username_watched', kwargs={'username': username}))
+            return HttpResponseRedirect(reverse('bitbucket_username_starred', kwargs={'username': username}))
     except ObjectDoesNotExist:
         pass
     res = HttpResponse("Unauthorized")
@@ -408,12 +413,12 @@ def bitbucket_username_category_watched_update(request,username, category):
             profile.save()
             bitbucket_provider = BitbucketProvider(user)
             repository_user = bitbucket_provider.update_watched_category_repositories(username, category)
-            repository_user.watched = None
+            repository_user.starred = None
             repository_user.save()
             if owned:
                 return HttpResponseRedirect(reverse('bitbucket_username_category_owned', kwargs={'username': username, 'category':category}))
             else:
-                return HttpResponseRedirect(reverse('bitbucket_username_category_watched', kwargs={'username': username,'category':category}))
+                return HttpResponseRedirect(reverse('bitbucket_username_category_starred', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
         pass
     res = HttpResponse("Unauthorized")
@@ -438,7 +443,7 @@ def bitbucket_username_category_owned_update(request, username, category):
             if owned:
                 return HttpResponseRedirect(reverse('bitbucket_username_category_owned', kwargs={'username': username, 'category':category}))
             else:
-                return HttpResponseRedirect(reverse('bitbucket_username_category_watched', kwargs={'username': username,'category':category}))
+                return HttpResponseRedirect(reverse('bitbucket_username_category_starred', kwargs={'username': username,'category':category}))
     except ObjectDoesNotExist:
         pass
     res = HttpResponse("Unauthorized")

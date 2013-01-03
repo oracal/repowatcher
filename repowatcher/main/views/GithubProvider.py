@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from operator import itemgetter
 from pygithub3 import Github
 from pygithub3.exceptions import NotFound
-from repowatcher.main.models import RepositoryUser, Repository
+from repowatcher.main.models import RepositoryUser, Repository, LinkType
 from repowatcher.main.tasks import get_events
 import json
 import logging
@@ -137,42 +137,47 @@ class GithubProvider(ProviderBase):
         repo_events = sorted(repo_events, key=itemgetter('created_at'), reverse = True)[:30]
         return repo_events
 
-    def get_repositories(self, username, owned, starred = True):
-        if owned:
+    def get_repositories(self, username, link_type):
+        if link_type == "owned":
             generator = self.client.repos.list(user=username)
-        elif starred:
+        elif link_type == "starred":
             generator = self.client.repos.stargazers.list_repos(user=username)
-        else:
+        elif link_type == "watched":
             generator = self.client.repos.watchers.list_repos(user=username)
         for repository in generator.iterator():
             repository_dict = vars(repository)
             repository_dict['owner'] = repository.owner.login
             yield repository_dict
 
-    def get_watched_status(self, owner, repository, starred = True):
+    def get_watched_status(self, owner, repository):
         watched = False
         if self.user.is_authenticated():
             try:
-                if starred:
-                    watched = self.client.repos.stargazers.is_starring(owner, repository)
-                else:
-                    watched = self.client.repos.watchers.is_watching(owner, repository)
+                watched = self.client.repos.watchers.is_watching(owner, repository)
             except Exception:
                 pass
         return watched
 
-    def watch(self, owner, repository, starred = True):
-        if starred:
-            self.client.repos.stargazers.star(owner, repository)
-        else:
-            self.client.repos.watchers.watch(owner, repository)
+    def get_starred_status(self, owner, repository):
+        watched = False
+        if self.user.is_authenticated():
+            try:
+                watched = self.client.repos.stargazers.is_starring(owner, repository)
+            except Exception:
+                pass
+        return watched
 
+    def watch(self, owner, repository):
+        self.client.repos.watchers.watch(owner, repository)
 
-    def unwatch(self, owner, repository, starred = True):
-        if starred:
-            self.client.repos.stargazers.unstar(owner, repository)
-        else:
-            self.client.repos.watchers.unwatch(owner, repository)
+    def star(self, owner, repository):
+        self.client.repos.stargazers.star(owner, repository)
+
+    def unwatch(self, owner, repository):
+        self.client.repos.watchers.unwatch(owner, repository)
+
+    def unstar(self, owner, repository):
+        self.client.repos.stargazers.unstar(owner, repository)
 
     def search_user(self, username):
         if self.access_token is None:
