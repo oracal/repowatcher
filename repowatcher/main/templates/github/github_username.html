@@ -35,11 +35,6 @@
 						<td>Name</td><td>{{repository_user.name|title}}</td>
 					</tr>
 					{% endif %}
-					{% if repository_user.email != None %}
-					<tr>
-						<td>Email</td><td>{{repository_user.email}}</td>
-					</tr>
-					{% endif %}
 					{% if repository_user.blog != None %}
 					<tr>
 						<td>Blog</td><td><a href ="{{repository_user.blog}}">{{repository_user.blog}}</a></td>

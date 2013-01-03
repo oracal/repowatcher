@@ -119,16 +119,6 @@
 						<td>Bitbucket Name</td><td>{{bitbucket_repository_user.name|title}}</td>
 					</tr>
 					{% endif %}
-					{% if github_repository_user.email != None %}
-					<tr>
-						<td>Github Email</td><td>{{github_repository_user.email}}</td>
-					</tr>
-					{% endif %}
-					{% if bitbucket_repository_user.email != None %}
-					<tr>
-						<td>Bitbucket Email</td><td>{{bitbucket_repository_user.email}}</td>
-					</tr>
-					{% endif %}
 					{% if github_repository_user.blog != None %}
 					<tr>
 						<td>Github Blog</td><td><a href ="{{github_repository_user.blog}}">{{github_repository_user.blog}}</a></td>
